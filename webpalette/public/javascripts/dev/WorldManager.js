@@ -47,6 +47,9 @@ $(function(){
 			scene:scene,
 			addEnterFrameListener : function(l) {
 				listeners.push(l);
+			},
+			blight : function(i) {
+				renderer.setClearColorHex(i, 1);
 			}
 		}
 	}
@@ -137,12 +140,6 @@ $(function(){
     		}
     		function get_uv(index) {
     			var a = map_size / texture_size;
-    			/*
-    			var u1 = new THREE.Vector2(index * a,0);
-    			var u2 = new THREE.Vector2(index * a,a);
-    			var u3 = new THREE.Vector2(index * a + a,a);
-    			var u4 = new THREE.Vector2(index * a + a,0);
-    			*/
     			var u1 = new THREE.Vector2(index * a,  0.9);
     			var u2 = new THREE.Vector2(index * a,  1);
     			var u3 = new THREE.Vector2(index * a+a,1);
@@ -316,18 +313,23 @@ $(function(){
 				chunk[x][z] = (new Chunk(x,z, renderManager));
 			}
 		}
+    	setInterval(function(){
+    		g_time++;
+    		var hour = (Math.floor(g_time / 7) % 24);
+    		if(hour > 21 || hour < 4) {
+        		renderManager.blight(0x0f0f0f);
+    		}else if(hour > 20 || hour < 5) {
+        		renderManager.blight(0x1f1010);
+    		}else if(hour > 19 || hour < 6) {
+        		renderManager.blight(0x993333);
+    		}else if(hour > 18 || hour < 7) {
+        		renderManager.blight(0x665577);
+    		}else{
+        		renderManager.blight(0xffffff);
+    		}
+    		$("#time").html(hour + "時");
+    	}, 1000);
 		var current_chunk = chunk[0][0];
-		/*
-		var current_chunk00 = chunk[0][0];
-		var current_chunk01 = chunk[0][1];
-		var current_chunk02 = chunk[0][2];
-		var current_chunk10 = chunk[1][0];
-		var current_chunk11 = chunk[1][1];
-		var current_chunk12 = chunk[1][2];
-		var current_chunk20 = chunk[2][0];
-		var current_chunk21 = chunk[2][1];
-		var current_chunk22 = chunk[2][2];
-		*/
 		var player = new Player(renderManager);
     	var inputManager = new InputManager();
     	inputManager.set("forward", function(){
