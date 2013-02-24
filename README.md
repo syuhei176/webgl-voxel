@@ -1,4 +1,4 @@
-webpalette
+world engine
 ==========
 
-インタラクティブコンテンツのワークベンチサービス
+webGL game
