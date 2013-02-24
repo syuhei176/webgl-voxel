@@ -269,12 +269,12 @@ $(function(){
     			if(x >= x_size || y >= y_size || z >= z_size) return null;
     			return boxes[x][y][z];
     		},
-			createObject : function(_x, _y, _z) {
+			createObject : function(_x, _y, _z, type) {
     			var x = _x - pos.x * x_size;
     			var y = _y;
     			var z = _z - pos.z * z_size;
 				if(boxes[x][y][z] == null) {
-					boxes[x][y][z] = true;
+					boxes[x][y][z] = type;
 				}else{
 					
 				}
@@ -291,6 +291,50 @@ $(function(){
 					boxes[x][y][z] = null;
 				}
 				this.refresh();
+			},
+			get_numofbox : function(x,y,z,type) {
+				var num = 0;
+				var sx = x-2;
+				var sy = y-2;
+				var sz = z-2;
+				var ex = x+2;
+				var ey = y+2;
+				var ez = z+2;
+				for(var xx=sx;xx<=ex;xx++) {
+					for(var yy=sy;yy<=ey;yy++) {
+						for(var zz=sz;zz<=ez;zz++) {
+							if(boxes[xx][yy][zz] == type) num++;
+						}
+					}
+				}
+				return num;
+			},
+			enterFrame : function() {
+				var self = this;
+	    		for(var x = 0;x < x_size;x++) {
+	        		for(var z = 0;z < z_size;z++) {
+	        			search_soil(x, z);
+	        		}
+	    		}
+	    		function search_soil(x, z) {
+	    			for(var y = y_size-1;y >= 0;y--) {
+	    				if(boxes[x][y][z] == 2) {
+	    					//soil
+	    					if(Math.random()*10 < 3) {
+		    					if(self.get_numofbox(x,y,z,3) < 1) {
+			    					boxes[x][y+1][z] = 3;
+		    						self.refresh();
+	    						}
+	    					}
+	    					return;
+	    				}else if(boxes[x][y][z] == 3) {
+	    					boxes[x][y+1][z] = 3;
+	    					self.refresh();
+	    					return;
+	    				}
+	    				if(boxes[x][y][z] != null) return;
+	    			}
+	    		}
 			}
 		}
 	}
@@ -328,6 +372,10 @@ $(function(){
         		renderManager.blight(0xffffff);
     		}
     		$("#time").html(hour + "時");
+    		
+    		if(g_time % 10 == 0) {
+    			current_chunk.enterFrame();
+    		}
     	}, 1000);
 		var current_chunk = chunk[0][0];
 		var player = new Player(renderManager);
