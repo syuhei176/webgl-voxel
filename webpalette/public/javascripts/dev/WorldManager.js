@@ -120,6 +120,8 @@ $(function(){
     				uvs : []
     		}
     		var vertex_map = {};
+			var map_size = 32;
+			var texture_size = 320;
     		for(var x = 0;x < x_size;x++) {
         		for(var z = 0;z < z_size;z++) {
             		search_surface_part(x, z);
@@ -133,6 +135,20 @@ $(function(){
 				}
 				return vertex_map[v.join("-")];
     		}
+    		function get_uv(index) {
+    			var a = map_size / texture_size;
+    			/*
+    			var u1 = new THREE.Vector2(index * a,0);
+    			var u2 = new THREE.Vector2(index * a,a);
+    			var u3 = new THREE.Vector2(index * a + a,a);
+    			var u4 = new THREE.Vector2(index * a + a,0);
+    			*/
+    			var u1 = new THREE.Vector2(index * a,  0.9);
+    			var u2 = new THREE.Vector2(index * a,  1);
+    			var u3 = new THREE.Vector2(index * a+a,1);
+    			var u4 = new THREE.Vector2(index * a+a,0.9);
+    			return [u1,u2,u3,u4];
+    		}
     		function search_surface_part(x,z) {
     			for(var y = y_size-1;y >= 0;y--) {
     				if(boxes[x][y][z] == null) {
@@ -142,7 +158,8 @@ $(function(){
     						var q3 =add_vertex([x+1,y+1,z+1]);
     						var q4 =add_vertex([x+1,y+1,z]);
     						result.faces.push([q1,q2,q3,q4]);
-    						result.uvs.push([new THREE.Vector2(0,0),new THREE.Vector2(0,1),new THREE.Vector2(1,1),new THREE.Vector2(1,0)]);
+    						result.uvs.push(get_uv(boxes[x+1][y][z]));
+    						//result.uvs.push([new THREE.Vector2(0,0),new THREE.Vector2(0,1),new THREE.Vector2(1,1),new THREE.Vector2(1,0)]);
     					}
     					if(x > 0 && boxes[x-1][y][z]) {
     						var q1 = add_vertex([x,y,z]);
@@ -150,6 +167,7 @@ $(function(){
     						var q3 =add_vertex([x,y+1,z+1]);
     						var q4 =add_vertex([x,y,z+1]);
     						result.faces.push([q1,q2,q3,q4]);
+    						result.uvs.push(get_uv(boxes[x-1][y][z]));
     					}
     					if(y < y_size-1 && boxes[x][y+1][z]) {
     						var q1 = add_vertex([x, y+1,z]);
@@ -157,6 +175,7 @@ $(function(){
     						var q3 =add_vertex([x+1,y+1,z+1]);
     						var q4 =add_vertex([x,  y+1,z+1]);
     						result.faces.push([q1,q2,q3,q4]);
+    						result.uvs.push(get_uv(boxes[x][y+1][z]));
     					}
     					if(y>0 && boxes[x][y-1][z]) {
     						var q1 = add_vertex([x,  y,z]);
@@ -164,6 +183,7 @@ $(function(){
     						var q3 = add_vertex([x+1,y,z+1]);
     						var q4 = add_vertex([x+1,y,z]);
     						result.faces.push([q1,q2,q3,q4]);
+    						result.uvs.push(get_uv(boxes[x][y-1][z]));
     					}
     					if(z < z_size-1 && boxes[x][y][z+1]) {
     						var q1 = add_vertex([x,  y,  z+1]);
@@ -171,6 +191,7 @@ $(function(){
     						var q3 = add_vertex([x+1,y+1,z+1]);
     						var q4 = add_vertex([x+1,y,  z+1]);
     						result.faces.push([q1,q2,q3,q4]);
+    						result.uvs.push(get_uv(boxes[x][y][z+1]));
     					}
     					if(z>0 && boxes[x][y][z-1]) {
     						var q1 = add_vertex([x,  y,  z]);
@@ -178,6 +199,7 @@ $(function(){
     						var q3 = add_vertex([x+1,y+1,z]);
     						var q4 = add_vertex([x,  y+1,z]);
     						result.faces.push([q1,q2,q3,q4]);
+    						result.uvs.push(get_uv(boxes[x][y][z-1]));
     					}
     				}
     			}
@@ -192,15 +214,15 @@ $(function(){
     		        	boxes[x][y] = [];
     			        for(var z = 0;z < z_size;z++) {
     			        	boxes[x][y][z] = null;
-    			        	if(y <= 32) {
-    				        	boxes[x][y][z] = true;
+    			        	if(y == 32) {
+    				        	boxes[x][y][z] = 1;
+    			        	}
+    			        	if(y < 32) {
+    				        	boxes[x][y][z] = 2;
     			        	}
     			        }
     		        }
     	        }
-	        	boxes[0][13][0] = true;
-	        	boxes[0][13][1] = true;
-	        	boxes[1][13][0] = true;
     		},
 			refresh : function() {
 				var geometry = new THREE.Geometry();
@@ -215,7 +237,7 @@ $(function(){
 							pos.z * z_size +result.vertices[i][2]));
 				}
 				for(var i=0;i < result.faces.length;i++) {
-				    geometry.faceVertexUvs[0].push([new THREE.Vector2(0,0),new THREE.Vector2(1,0),new THREE.Vector2(1,1),new THREE.Vector2(0,1)]);
+				    geometry.faceVertexUvs[0].push(result.uvs[i]);
 					var q = result.faces[i];
 					var f = new THREE.Face4(q[0], q[1], q[2], q[3]);
 					f.color = new THREE.Color(0x000000);
@@ -226,7 +248,7 @@ $(function(){
 		        var material = new THREE.MeshBasicMaterial({
 		            color: 0xffffff, ambient: 0xffffff,
 		            specular: 0xcccccc, shininess:50, metal:true,
-		            map: THREE.ImageUtils.loadTexture('/images/01.png') });
+		            map: THREE.ImageUtils.loadTexture('/images/texture.png') });
 		        
 		        geometry.computeFaceNormals()
 		        
