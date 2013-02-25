@@ -45,6 +45,7 @@ $(function(){
 			},
 			camera:camera,
 			scene:scene,
+			renderer:renderer,
 			addEnterFrameListener : function(l) {
 				listeners.push(l);
 			},
@@ -57,7 +58,7 @@ $(function(){
 	function GameManager() {
 		
 	}
-	function InputManager() {
+	function InputManager(RenderManager) {
 		var listeners = {pointermove:function(){}};
 		var mousePos = {x:0,y:0};
 		var prevMousePos = {x:0,y:0};
@@ -80,12 +81,24 @@ $(function(){
 			}
 		}, false);
 		window.addEventListener("mousemove", function(e){
-			prevMousePos.x = mousePos.x;
-			prevMousePos.y = mousePos.y;
-			mousePos.x = (e.clientX / window.innerWidth ) *  2 - 1;
-			mousePos.y = (e.clientY / window.innerHeight) * -2 + 1;
-			if(prevMousePos.x != 0) {
-				listeners["pointermove"]({mx:mousePos.x - prevMousePos.x, my:mousePos.y - prevMousePos.y});
+			if(true) {
+				  var movementX = e.movementX       ||
+                  e.mozMovementX    ||
+                  e.webkitMovementX ||
+                  0,
+                  movementY = e.movementY       ||
+                  e.mozMovementY    ||
+                  e.webkitMovementY ||
+                  0;
+				  listeners["pointermove"]({mx:movementX/window.innerWidth, my:-movementY/window.innerHeight});
+			}else{
+				prevMousePos.x = mousePos.x;
+				prevMousePos.y = mousePos.y;
+				mousePos.x = (e.clientX / window.innerWidth ) *  2 - 1;
+				mousePos.y = (e.clientY / window.innerHeight) * -2 + 1;
+				if(prevMousePos.x != 0) {
+					listeners["pointermove"]({mx:mousePos.x - prevMousePos.x, my:mousePos.y - prevMousePos.y});
+				}
 			}
 		}, false);
 		window.addEventListener("mousedown", function(e){
@@ -379,7 +392,7 @@ $(function(){
     	}, 1000);
 		var current_chunk = chunk[0][0];
 		var player = new Player(renderManager);
-    	var inputManager = new InputManager();
+    	var inputManager = new InputManager(renderManager);
     	inputManager.set("forward", function(){
     		player.forward();
     	});
