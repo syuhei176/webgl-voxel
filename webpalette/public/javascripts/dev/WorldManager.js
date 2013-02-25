@@ -12,7 +12,7 @@ $(function(){
 		document.body.appendChild(renderer.domElement);
 		//シーンの作成
 		var scene = new THREE.Scene();
-		scene.fog = new THREE.Fog( 0xffffff, 1, 47 );
+		scene.fog = new THREE.Fog( 0xffffff, 1, Chunk.CHUNLK_LENGTH_X * 1.2 );
 		//カメラの作成
 		var camera = new THREE.PerspectiveCamera(100, _width / _height);
 		camera.position = new THREE.Vector3(0, 0, 10);
@@ -116,17 +116,22 @@ $(function(){
 			}
 		}
 	}
-	Chunk.CHUNLK_WIDTH = 32;
-	Chunk.CHUNLK_HEIGHT = 32;
+	Chunk.CHUNLK_LENGTH_X = 16;
+	Chunk.CHUNLK_LENGTH_Y = 128;
+	Chunk.CHUNLK_LENGTH_Z = 16;
+	Chunk.TEXTURE_SIZE = 320;
+	Chunk.TEXTURE_TIP_SIZE = 32;
+	Chunk.TEXTURE_TIP_RATIO = Chunk.TEXTURE_TIP_SIZE / Chunk.TEXTURE_SIZE;
 	function Chunk(x,z, _renderManager) {
 		var pos = {
 				x:x,
 				z:z
 		}
 		var renderManager = _renderManager;
-		var x_size = Chunk.CHUNLK_WIDTH;
-		var z_size = Chunk.CHUNLK_HEIGHT;
-		var y_size = 128;
+		var worldManager = null;
+		var x_size = Chunk.CHUNLK_LENGTH_X;
+		var z_size = Chunk.CHUNLK_LENGTH_Z;
+		var y_size = Chunk.CHUNLK_LENGTH_Y;
 		var mesh = null;
 		var boxes = null;
     	function getMesherResult() {
@@ -136,8 +141,6 @@ $(function(){
     				uvs : []
     		}
     		var vertex_map = {};
-			var map_size = 32;
-			var texture_size = 320;
     		for(var x = 0;x < x_size;x++) {
         		for(var z = 0;z < z_size;z++) {
             		search_surface_part(x, z);
@@ -152,11 +155,10 @@ $(function(){
 				return vertex_map[v.join("-")];
     		}
     		function get_uv(index) {
-    			var a = map_size / texture_size;
-    			var u1 = new THREE.Vector2(index * a,  0.9);
-    			var u2 = new THREE.Vector2(index * a,  1);
-    			var u3 = new THREE.Vector2(index * a+a,1);
-    			var u4 = new THREE.Vector2(index * a+a,0.9);
+    			var u1 = new THREE.Vector2(index * Chunk.TEXTURE_TIP_RATIO,  0.9);
+    			var u2 = new THREE.Vector2(index * Chunk.TEXTURE_TIP_RATIO,  1);
+    			var u3 = new THREE.Vector2((index + 1) * Chunk.TEXTURE_TIP_RATIO,1);
+    			var u4 = new THREE.Vector2((index + 1) * Chunk.TEXTURE_TIP_RATIO,0.9);
     			return [u1,u2,u3,u4];
     		}
     		function search_surface_part(x,z) {
@@ -169,7 +171,19 @@ $(function(){
     						var q4 =add_vertex([x+1,y+1,z]);
     						result.faces.push([q1,q2,q3,q4]);
     						result.uvs.push(get_uv(boxes[x+1][y][z]));
-    						//result.uvs.push([new THREE.Vector2(0,0),new THREE.Vector2(0,1),new THREE.Vector2(1,1),new THREE.Vector2(1,0)]);
+    					}else if(x == x_size-1){
+    						var chunk1 = worldManager.getChunk(pos.x+1, pos.z);
+    						if(chunk1) {
+        						var box1 = chunk1.findObjectLocal(0, y, z);
+        						if(box1) {
+            						var q1 = add_vertex([x+1,y,z]);
+            						var q2 =add_vertex([x+1,y,z+1]);
+            						var q3 =add_vertex([x+1,y+1,z+1]);
+            						var q4 =add_vertex([x+1,y+1,z]);
+            						result.faces.push([q1,q2,q3,q4]);
+            						result.uvs.push(get_uv(box1));
+        						}
+    						}
     					}
     					if(x > 0 && boxes[x-1][y][z]) {
     						var q1 = add_vertex([x,y,z]);
@@ -178,6 +192,19 @@ $(function(){
     						var q4 =add_vertex([x,y,z+1]);
     						result.faces.push([q1,q2,q3,q4]);
     						result.uvs.push(get_uv(boxes[x-1][y][z]));
+    					}else if(x == 0){
+    						var chunk1 = worldManager.getChunk(pos.x-1, pos.z);
+    						if(chunk1) {
+        						var box1 = chunk1.findObjectLocal(Chunk.CHUNLK_LENGTH_X-1, y, z);
+        						if(box1) {
+            						var q1 = add_vertex([x,y,z]);
+            						var q2 =add_vertex([x,y+1,z]);
+            						var q3 =add_vertex([x,y+1,z+1]);
+            						var q4 =add_vertex([x,y,z+1]);
+            						result.faces.push([q1,q2,q3,q4]);
+            						result.uvs.push(get_uv(box1));
+        						}
+    						}
     					}
     					if(y < y_size-1 && boxes[x][y+1][z]) {
     						var q1 = add_vertex([x, y+1,z]);
@@ -202,6 +229,19 @@ $(function(){
     						var q4 = add_vertex([x+1,y,  z+1]);
     						result.faces.push([q1,q2,q3,q4]);
     						result.uvs.push(get_uv(boxes[x][y][z+1]));
+    					}else if(z == z_size-1){
+    						var chunk1 = worldManager.getChunk(pos.x, pos.z+1);
+    						if(chunk1) {
+        						var box1 = chunk1.findObjectLocal(x, y, 0);
+        						if(box1) {
+            						var q1 = add_vertex([x,  y,  z+1]);
+            						var q2 = add_vertex([x,  y+1,z+1]);
+            						var q3 = add_vertex([x+1,y+1,z+1]);
+            						var q4 = add_vertex([x+1,y,  z+1]);
+            						result.faces.push([q1,q2,q3,q4]);
+            						result.uvs.push(get_uv(box1));
+        						}
+    						}
     					}
     					if(z>0 && boxes[x][y][z-1]) {
     						var q1 = add_vertex([x,  y,  z]);
@@ -210,24 +250,39 @@ $(function(){
     						var q4 = add_vertex([x,  y+1,z]);
     						result.faces.push([q1,q2,q3,q4]);
     						result.uvs.push(get_uv(boxes[x][y][z-1]));
+    					}else if(z == 0){
+    						var chunk1 = worldManager.getChunk(pos.x, pos.z-1);
+    						if(chunk1) {
+        						var box1 = chunk1.findObjectLocal(x, y, Chunk.CHUNLK_LENGTH_Z-1);
+        						if(box1) {
+            						var q1 = add_vertex([x,  y,  z]);
+            						var q2 = add_vertex([x+1,y,  z]);
+            						var q3 = add_vertex([x+1,y+1,z]);
+            						var q4 = add_vertex([x,  y+1,z]);
+            						result.faces.push([q1,q2,q3,q4]);
+            						result.uvs.push(get_uv(box1));
+        						}
+    						}
     					}
     				}
     			}
     		}
     	}
     	return {
-    		init : function() {
+    		init : function(_worldManager) {
+    			worldManager = _worldManager;
     			boxes = [];
+	        	var h_point = Math.floor(Chunk.CHUNLK_LENGTH_Y / 4);
     	        for(var x = 0;x < x_size;x++) {
     	        	boxes[x] = [];
     		        for(var y = 0;y < y_size;y++) {
     		        	boxes[x][y] = [];
     			        for(var z = 0;z < z_size;z++) {
     			        	boxes[x][y][z] = null;
-    			        	if(y == 32) {
+    			        	if(y == h_point) {
     				        	boxes[x][y][z] = 1;
     			        	}
-    			        	if(y < 32) {
+    			        	if(y < h_point) {
     				        	boxes[x][y][z] = 2;
     			        	}
     			        }
@@ -274,6 +329,14 @@ $(function(){
 		        mesh.doubleSided = false
 		        renderManager.addToScene(mesh);
 			},
+    		findObjectLocal : function(_x, _y, _z) {
+    			var x = _x;
+    			var y = _y;
+    			var z = _z;
+    			if(x < 0 || y < 0 || z < 0) return null;
+    			if(x >= x_size || y >= y_size || z >= z_size) return null;
+    			return boxes[x][y][z];
+    		},
     		findObject : function(_x, _y, _z) {
     			var x = _x - pos.x * x_size;
     			var y = _y;
@@ -367,12 +430,13 @@ $(function(){
 		for(var x=0;x < x_size;x++) {
 			chunk[x] = [];
 			for(var z=0;z < z_size;z++) {
-				chunk[x][z] = (new Chunk(x,z, renderManager));
+				chunk[x][z] = new Chunk(x,z, renderManager);
 			}
 		}
     	setInterval(function(){
     		g_time++;
     		var hour = (Math.floor(g_time / 7) % 24);
+    		/*
     		if(hour > 21 || hour < 4) {
         		renderManager.blight(0x0f0f0f);
     		}else if(hour > 20 || hour < 5) {
@@ -384,6 +448,7 @@ $(function(){
     		}else{
         		renderManager.blight(0xffffff);
     		}
+    		*/
     		$("#time").html(hour + "時");
     		
     		if(g_time % 10 == 0) {
@@ -415,6 +480,10 @@ $(function(){
     		player.selectItem(e.number);
     	});
 		return {
+			getChunk : function(x, z) {
+				if(x < 0 || z < 0 || x >= 12 || z >= 12) return null;
+				return chunk[x][z];
+			},
 			add : function(obj) {
 		        if(obj.getClass() == "Object") {
 		        	//既にboxesに入っている
@@ -432,8 +501,8 @@ $(function(){
 		        }
 			},
 			refreshActiveChunk : function() {
-				var x = Math.floor(player.getPos().x / Chunk.CHUNLK_WIDTH);
-				var z = Math.floor(player.getPos().z / Chunk.CHUNLK_HEIGHT);
+				var x = Math.floor(player.getPos().x / Chunk.CHUNLK_LENGTH_X);
+				var z = Math.floor(player.getPos().z / Chunk.CHUNLK_LENGTH_Z);
 				if(current_chunk != chunk[x][z] && chunk[x][z]) {
 					current_chunk = chunk[x][z];
 					this.createMesh();
@@ -446,8 +515,8 @@ $(function(){
 				return;
 			},
 			createMesh : function() {
-				var x = Math.floor(player.getPos().x / Chunk.CHUNLK_WIDTH);
-				var z = Math.floor(player.getPos().z / Chunk.CHUNLK_HEIGHT);
+				var x = Math.floor(player.getPos().x / Chunk.CHUNLK_LENGTH_X);
+				var z = Math.floor(player.getPos().z / Chunk.CHUNLK_LENGTH_Z);
 				var start_x = x - 1;
 				var start_z = z - 1;
 				var end_x = x + 1;
@@ -464,7 +533,7 @@ $(function(){
 				player.setWorldManager(this);
 				for(var x=0;x < x_size;x++) {
 					for(var z=0;z < z_size;z++) {
-						chunk[x][z].init();
+						chunk[x][z].init(this);
 					}
 				}
 				this.createMesh();
@@ -474,18 +543,25 @@ $(function(){
 		        renderManager.play();
 			},
 			destroyObject : function(_x,_y,_z) {
-				var x = Math.floor(_x / Chunk.CHUNLK_WIDTH);
-				var z = Math.floor(_z / Chunk.CHUNLK_HEIGHT);
+				var x = Math.floor(_x / Chunk.CHUNLK_LENGTH_X);
+				var z = Math.floor(_z / Chunk.CHUNLK_LENGTH_Z);
 				if(chunk[x][z]) {
 					chunk[x][z].destroyObject(_x, _y, _z);
+				}
+				if(current_chunk != chunk[x][z]) {
+					current_chunk.refresh();
 				}
 				//TODO: オブジェクトをアイテム化して床に落とす
 	        	var item = metaItem.getInstance(renderManager);
 	        	item.setPosition(_x+0.5, _y+0.5, _z+0.5);
 	        	this.add(item);
 			},
-			createObject : function(x,y,z) {
-				current_chunk.createObject(x, y, z);
+			createObject : function(_x,_y,_z) {
+				var x = Math.floor(_x / Chunk.CHUNLK_LENGTH_X);
+				var z = Math.floor(_z / Chunk.CHUNLK_LENGTH_Z);
+				if(chunk[x][z]) {
+					chunk[x][z].createObject(_x, _y, _z, 2);
+				}
 			},
 			findObject : function(_x, _y, _z) {
 				var x = Math.floor(_x);
@@ -514,7 +590,11 @@ $(function(){
 		var renderManager = _renderManager;
 		var worldManager;
 		var camera = renderManager.camera;
-		var pos = new THREE.Vector3(40, 35, 16);
+		var pos = new THREE.Vector3(
+				Math.floor(Chunk.CHUNLK_LENGTH_X * 12 / 2),
+				Math.floor(Chunk.CHUNLK_LENGTH_Y / 4)+5,
+				Math.floor(Chunk.CHUNLK_LENGTH_Z * 12 / 2)
+				);
 		var direction = new THREE.Vector3(0, 0, -1);
 		var walkspeed = 0.2;
 		var selectedItem = 0;
@@ -562,7 +642,7 @@ $(function(){
 					worldManager.remove(item);
 					items++;
 				}
-				$("#debug2").html("chunk x="+pos.x+",y="+pos.y+",z="+pos.z);
+				$("#debug2").html("chunk x="+Math.floor(pos.x)+",y="+Math.floor(pos.y)+",z="+Math.floor(pos.z));
 				worldManager.refreshActiveChunk();
 			},
 			backward : function() {
@@ -619,12 +699,14 @@ $(function(){
 				if(intersects.length > 0) {
 					console.log(intersects[0]);
 					if(selectedItem == 0) {
-						worldManager.destroyObject(
-								Math.floor(intersects[0].point.x - intersects[0].face.normal.x/4),
-								Math.floor(intersects[0].point.y - intersects[0].face.normal.y/4),
-								Math.floor(intersects[0].point.z - intersects[0].face.normal.z/4));
+						if(intersects[0].distance < 4) {
+							worldManager.destroyObject(
+									Math.floor(intersects[0].point.x - intersects[0].face.normal.x/4),
+									Math.floor(intersects[0].point.y - intersects[0].face.normal.y/4),
+									Math.floor(intersects[0].point.z - intersects[0].face.normal.z/4));
+						}
 					}else{
-						if(items > 0 && intersects[0].distance < 3) {
+						if(items > 0 && intersects[0].distance < 4) {
 							items--;
 							console.log(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
 							console.log(intersects[0].face.normal.x/4,intersects[0].face.normal.y/4,intersects[0].face.normal.z/4)
