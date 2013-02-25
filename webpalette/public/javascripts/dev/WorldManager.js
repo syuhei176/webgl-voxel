@@ -564,10 +564,15 @@ $(function(){
 				}
 			},
 			findObject : function(_x, _y, _z) {
+				var cx = Math.floor(_x / Chunk.CHUNLK_LENGTH_X);
+				var cz = Math.floor(_z / Chunk.CHUNLK_LENGTH_Z);
 				var x = Math.floor(_x);
 				var y = Math.floor(_y);
 				var z = Math.floor(_z);
-				return current_chunk.findObject(x, y, z);
+				if(chunk[cx][cz]) {
+					return chunk[cx][cz].findObject(x, y, z);
+				}
+				return null;
 			},
 			findItemById : function(id) {
 				return items[id];
@@ -658,18 +663,28 @@ $(function(){
 				worldManager.refreshActiveChunk();
 			},
 			right : function() {
-				pos.x += direction.z * -walkspeed;
-				pos.z += direction.x * -walkspeed;
-				//TODO: もし壁に当たったら、元に戻す
-				//TODO: 下にブロックがなかったら下に落ちる
+				pos.x += -direction.z * walkspeed;
+				pos.z += direction.x * walkspeed;
+				//もし壁に当たったら、元に戻す
+				var coll = worldManager.findObject(pos.x, pos.y, pos.z);
+				if(coll) {
+					pos.x += -direction.z * -walkspeed;
+					pos.z += direction.x * -walkspeed;
+				}
 				refreshCameraPosition();
+				worldManager.refreshActiveChunk();
 			},
 			left : function() {
 				pos.x += direction.z * walkspeed;
-				pos.z += direction.x * walkspeed;
-				//TODO: もし壁に当たったら、元に戻す
-				//TODO: 下にブロックがなかったら下に落ちる
+				pos.z += -direction.x * walkspeed;
+				//もし壁に当たったら、元に戻す
+				var coll = worldManager.findObject(pos.x, pos.y, pos.z);
+				if(coll) {
+					pos.x += direction.z * -walkspeed;
+					pos.z += -direction.x * -walkspeed;
+				}
 				refreshCameraPosition();
+				worldManager.refreshActiveChunk();
 			},
 			changeDirection : function(mx, my) {
 				var th = ((mx > 0)?1:-1) * Math.abs(mx) * 320;
