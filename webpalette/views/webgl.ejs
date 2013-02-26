@@ -4,8 +4,8 @@
   <body>
     <script src="/javascripts/lib/three.min.js"></script>
   	<script type="text/javascript" src="/javascripts/lib/jquery-1.8.2.min.js"></script>
-    <script src="/javascripts/dev/WorldManager.js"></script>
-    <script src="/javascripts/dev/TerrainGenerator.js"></script>
+    <script src="/javascripts/dev/core/WorldManager.js"></script>
+    <script src="/javascripts/dev/core/TerrainGenerator.js"></script>
     <script>
     $(function(){
         document.body.onclick = function() {
@@ -31,11 +31,16 @@
     	//worldManager.add(box);
     })
     </script>
+    <!-- 
     <div style="position:absolute;top:250px;left:320px;">＋</div>
+     -->
     <div style="position:absolute;top:100px;left:650px;">
+        <div>操作<br>W,S：前進、更新<br>マウス：視点移動<br>クリック：ツール適用<br>1:ブロックの削除ツール、2:ブロック設置ツール</div>
+        <div style="font-size:5px;">
     <div id="time"></div>
     <div id="debug1"></div>
     <div id="debug2"></div>
+            </div>
     </div>
   </body>
 </html>
