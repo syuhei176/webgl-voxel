@@ -284,12 +284,23 @@ $(function(){
     	        for(var x = 0;x < x_size;x++) {
 			        for(var z = 0;z < z_size;z++) {
 			        	var hpoint = terrain[pos.x*Chunk.CHUNLK_LENGTH_X+x][pos.z*Chunk.CHUNLK_LENGTH_Z+z];
-			        	//console.log(hpoint);
 	    		        for(var y = 0;y < y_size;y++) {
 	    		        	if(hpoint > y) {
-		    		        	boxes[x][y][z] = 2;
+	    		        		var r = Math.random() * 10;
+	    		        		if(this.get_numofbox(x,y,z,5,1)) {
+	    		        			if(r < 3) boxes[x][y][z] = 5;
+	    		        			else boxes[x][y][z] = 2;
+	    		        		}else{
+	    		        			if(r <= 0.01){
+	    		        				boxes[x][y][z] = 5;
+	    		        			}else boxes[x][y][z] = 2;
+	    		        		}
 	    		        	}else if(hpoint == y) {
-	    		        		boxes[x][y][z] = 1;
+	    		        		if(Math.random() * 10 <= 1) {
+		    		        		boxes[x][y][z] = 2;
+	    		        		}else{
+		    		        		boxes[x][y][z] = 1;
+	    		        		}
 	    		        	}else{
 	    		        		boxes[x][y][z] = null;
 	    		        	}
@@ -376,14 +387,20 @@ $(function(){
 				}
 				this.refresh();
 			},
-			get_numofbox : function(x,y,z,type) {
+			get_numofbox : function(x,y,z,type,range) {
 				var num = 0;
-				var sx = x-2;
-				var sy = y-2;
-				var sz = z-2;
-				var ex = x+2;
-				var ey = y+2;
-				var ez = z+2;
+				var sx = x-range;
+				var sy = y-range;
+				var sz = z-range;
+				var ex = x+range;
+				var ey = y+range;
+				var ez = z+range;
+				if(sx < 0) sx = 0;
+				if(sy < 0) sy = 0;
+				if(sz < 0) sz = 0;
+				if(ex > Chunk.CHUNLK_LENGTH_X-1) ex = Chunk.CHUNLK_LENGTH_X-1;
+				if(ey > Chunk.CHUNLK_LENGTH_Y-1) ey = Chunk.CHUNLK_LENGTH_Y-1;
+				if(ez > Chunk.CHUNLK_LENGTH_Z-1) ez = Chunk.CHUNLK_LENGTH_Z-1;
 				for(var xx=sx;xx<=ex;xx++) {
 					for(var yy=sy;yy<=ey;yy++) {
 						for(var zz=sz;zz<=ez;zz++) {
@@ -404,15 +421,28 @@ $(function(){
 	    			for(var y = y_size-1;y >= 0;y--) {
 	    				if(boxes[x][y][z] == 2) {
 	    					//soil
-	    					if(Math.random()*10 < 3) {
-		    					if(self.get_numofbox(x,y,z,3) < 1) {
-			    					boxes[x][y+1][z] = 3;
-		    						self.refresh();
-	    						}
+	    					if(Math.random()*10 < 3 && self.get_numofbox(x,y,z,3,2) < 1) {
+		    					boxes[x][y+1][z] = 3;
+	    						self.refresh();
+	    					}else{
+		    					boxes[x][y+1][z] = 1;
+	    						self.refresh();
 	    					}
 	    					return;
 	    				}else if(boxes[x][y][z] == 3) {
-	    					boxes[x][y+1][z] = 3;
+	    					if(boxes[x][y-1][z] == 3 && boxes[x][y-2][z] == 3) {
+	    						boxes[x][y+1][z] = 4;
+	    						boxes[x+1][y+1][z] = 4;
+	    						boxes[x-1][y+1][z] = 4;
+	    						boxes[x][y+1][z+1] = 4;
+	    						boxes[x][y+1][z-1] = 4;
+	    						boxes[x+1][y+1][z+1] = 4;
+	    						boxes[x-1][y+1][z+1] = 4;
+	    						boxes[x+1][y+1][z-1] = 4;
+	    						boxes[x-1][y+1][z-1] = 4;
+	    					}else{
+		    					boxes[x][y+1][z] = 3;
+	    					}
 	    					self.refresh();
 	    					return;
 	    				}
@@ -539,7 +569,6 @@ $(function(){
 				}
 			},
 			init : function() {
-				player.setWorldManager(this);
 	        	var terraingen = new TerrainGenerator(Chunk.CHUNLK_LENGTH_X*WorldManager.WORLD_WIDTH, Chunk.CHUNLK_LENGTH_Y, Chunk.CHUNLK_LENGTH_Z*WorldManager.WORLD_WIDTH);
 	        	var terrain = terraingen.getMap();
 				for(var x=0;x < x_size;x++) {
@@ -549,6 +578,7 @@ $(function(){
 				}
 				this.createMesh();
 				this.refreshActiveChunk();
+				player.initPlayer(this);
 			},
 			play : function() {
 		        renderManager.play();
@@ -598,6 +628,20 @@ $(function(){
 						return items[key];
 					}
 				}
+			},
+			getStartPoint : function() {
+				var player_x = Math.floor(Chunk.CHUNLK_LENGTH_X * WorldManager.WORLD_WIDTH / 2);
+				var player_y = Chunk.CHUNLK_LENGTH_Y-1;
+				var player_z = Math.floor(Chunk.CHUNLK_LENGTH_Z * WorldManager.WORLD_WIDTH / 2);
+				var x = Math.floor(WorldManager.WORLD_WIDTH / 2);
+				var z = Math.floor(WorldManager.WORLD_WIDTH / 2);
+    			for(var y = Chunk.CHUNLK_LENGTH_Y-1;y >= 0;y--) {
+    				if(chunk[x][z].findObject(player_x, y, player_z)) {
+    					player_y = y+5;
+    					break;
+    				}
+    			}
+				return {x:player_x,y:player_y,z:player_z};
 			}
 		}
 	}
@@ -638,8 +682,12 @@ $(function(){
 			getPos : function() {
 				return pos;
 			},
-			setWorldManager : function(_worldManager) {
+			initPlayer : function(_worldManager) {
 				worldManager = _worldManager;
+				var p = worldManager.getStartPoint();
+				pos.x = p.x;
+				pos.y = p.y;
+				pos.z = p.z;
 			},
 			forward : function() {
 				pos.x += direction.x * walkspeed;
