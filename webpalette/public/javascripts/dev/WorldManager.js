@@ -269,24 +269,32 @@ $(function(){
     		}
     	}
     	return {
-    		init : function(_worldManager) {
+    		init : function(_worldManager, terrain) {
     			worldManager = _worldManager;
     			boxes = [];
-	        	var h_point = Math.floor(Chunk.CHUNLK_LENGTH_Y / 4);
     	        for(var x = 0;x < x_size;x++) {
     	        	boxes[x] = [];
     		        for(var y = 0;y < y_size;y++) {
     		        	boxes[x][y] = [];
     			        for(var z = 0;z < z_size;z++) {
     			        	boxes[x][y][z] = null;
-    			        	if(y == h_point) {
-    				        	boxes[x][y][z] = 1;
-    			        	}
-    			        	if(y < h_point) {
-    				        	boxes[x][y][z] = 2;
-    			        	}
     			        }
     		        }
+    	        }
+    	        for(var x = 0;x < x_size;x++) {
+			        for(var z = 0;z < z_size;z++) {
+			        	var hpoint = terrain[pos.x*Chunk.CHUNLK_LENGTH_X+x][pos.z*Chunk.CHUNLK_LENGTH_Z+z];
+			        	//console.log(hpoint);
+	    		        for(var y = 0;y < y_size;y++) {
+	    		        	if(hpoint > y) {
+		    		        	boxes[x][y][z] = 2;
+	    		        	}else if(hpoint == y) {
+	    		        		boxes[x][y][z] = 1;
+	    		        	}else{
+	    		        		boxes[x][y][z] = null;
+	    		        	}
+	    		        }
+			        }
     	        }
     		},
 			refresh : function() {
@@ -414,10 +422,11 @@ $(function(){
 			}
 		}
 	}
+	WorldManager.WORLD_WIDTH = 16;
 	function WorldManager() {
     	var renderManager = new RenderManager(640, 500);
-		var x_size = 12;
-		var z_size = 12;
+		var x_size = WorldManager.WORLD_WIDTH;
+		var z_size = WorldManager.WORLD_WIDTH;
 		
 		//current chunk mesh
 		var mesh = null;
@@ -481,7 +490,7 @@ $(function(){
     	});
 		return {
 			getChunk : function(x, z) {
-				if(x < 0 || z < 0 || x >= 12 || z >= 12) return null;
+				if(x < 0 || z < 0 || x >= WorldManager.WORLD_WIDTH || z >= WorldManager.WORLD_WIDTH) return null;
 				return chunk[x][z];
 			},
 			add : function(obj) {
@@ -531,9 +540,11 @@ $(function(){
 			},
 			init : function() {
 				player.setWorldManager(this);
+	        	var terraingen = new TerrainGenerator(Chunk.CHUNLK_LENGTH_X*WorldManager.WORLD_WIDTH, Chunk.CHUNLK_LENGTH_Y, Chunk.CHUNLK_LENGTH_Z*WorldManager.WORLD_WIDTH);
+	        	var terrain = terraingen.getMap();
 				for(var x=0;x < x_size;x++) {
 					for(var z=0;z < z_size;z++) {
-						chunk[x][z].init(this);
+						chunk[x][z].init(this, terrain);
 					}
 				}
 				this.createMesh();
@@ -582,7 +593,7 @@ $(function(){
 					var a = items[key].getMesh().position.x - _x;
 					var b = items[key].getMesh().position.y - _y;
 					var c = items[key].getMesh().position.z - _z;
-					console.log("item", a * a + b * b + c * c);
+					//.log("item", a * a + b * b + c * c);
 					if(a * a + b * b + c * c < 2) {
 						return items[key];
 					}
@@ -596,9 +607,9 @@ $(function(){
 		var worldManager;
 		var camera = renderManager.camera;
 		var pos = new THREE.Vector3(
-				Math.floor(Chunk.CHUNLK_LENGTH_X * 12 / 2),
-				Math.floor(Chunk.CHUNLK_LENGTH_Y / 4)+5,
-				Math.floor(Chunk.CHUNLK_LENGTH_Z * 12 / 2)
+				Math.floor(Chunk.CHUNLK_LENGTH_X * WorldManager.WORLD_WIDTH / 2),
+				Math.floor(Chunk.CHUNLK_LENGTH_Y - 30),
+				Math.floor(Chunk.CHUNLK_LENGTH_Z * WorldManager.WORLD_WIDTH / 2)
 				);
 		var direction = new THREE.Vector3(0, 0, -1);
 		var walkspeed = 0.2;
