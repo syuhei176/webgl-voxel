@@ -1,5 +1,12 @@
 $(function(){
-	
+	WorldManager.WORLD_WIDTH = 16;
+	Chunk.CHUNLK_LENGTH_X = 16;
+	Chunk.CHUNLK_LENGTH_Y = 128;
+	Chunk.CHUNLK_LENGTH_Z = 16;
+	Chunk.TEXTURE_SIZE = 320;
+	Chunk.TEXTURE_TIP_SIZE = 32;
+	Chunk.TEXTURE_TIP_RATIO = Chunk.TEXTURE_TIP_SIZE / Chunk.TEXTURE_SIZE;
+
 	function RenderManager(_width, _height) {
 		var width = _width;
 		var height = _height;
@@ -9,12 +16,13 @@ $(function(){
 		renderer.setDepthTest(true);
 		renderer.setSize(_width, _height);
 		renderer.setClearColorHex(0xffffff, 1);
+		renderer.clear();
 		document.body.appendChild(renderer.domElement);
 		//シーンの作成
 		var scene = new THREE.Scene();
 		scene.fog = new THREE.Fog( 0xffffff, 1, Chunk.CHUNLK_LENGTH_X * 1.2 );
 		//カメラの作成
-		var camera = new THREE.PerspectiveCamera(100, _width / _height);
+		var camera = new THREE.PerspectiveCamera(90, _width / _height);
 		camera.position = new THREE.Vector3(0, 0, 10);
 		camera.lookAt(new THREE.Vector3(0, 0, 0));
 		scene.add(camera);
@@ -26,7 +34,12 @@ $(function(){
 		scene.add(ambient);
 		
 		var listeners = [];
+		var display_queue = [];
 		return {
+			enDisplayQueue : function(chunk) {
+				//chunk.refresh();
+				display_queue.push(chunk);
+			},
 			addToScene : function(obj) {
 				scene.add(obj);
 			},
@@ -35,11 +48,13 @@ $(function(){
 			},
 			play : function() {
 				function render() {
-					for(var i = 0;i < listeners.length;i++) {
-						listeners[i]();
+					var c = display_queue.shift();
+					if(c) {
+						c.refresh();
 					}
+					//display_queue.length = 0;
 					requestAnimationFrame(render);
-					renderer.render(scene, camera);
+					if(!c) renderer.render(scene, camera);
 				};
 				render();
 			},
@@ -116,12 +131,6 @@ $(function(){
 			}
 		}
 	}
-	Chunk.CHUNLK_LENGTH_X = 16;
-	Chunk.CHUNLK_LENGTH_Y = 128;
-	Chunk.CHUNLK_LENGTH_Z = 16;
-	Chunk.TEXTURE_SIZE = 320;
-	Chunk.TEXTURE_TIP_SIZE = 32;
-	Chunk.TEXTURE_TIP_RATIO = Chunk.TEXTURE_TIP_SIZE / Chunk.TEXTURE_SIZE;
 	function Chunk(x,z, _renderManager) {
 		var pos = {
 				x:x,
@@ -133,6 +142,18 @@ $(function(){
 		var z_size = Chunk.CHUNLK_LENGTH_Z;
 		var y_size = Chunk.CHUNLK_LENGTH_Y;
 		var mesh = null;
+		var meshes = [];
+		for(var i=0;i < Chunk.CHUNLK_LENGTH_X;i++) {
+			meshes[i] = [];
+			for(var j=0;j < Chunk.CHUNLK_LENGTH_Z;j++) {
+				meshes[i][j] = null;
+			}
+		}
+		function getMesh(x,z) {
+			if(x < 0 || z < 0 || x >= Chunk.CHUNLK_LENGTH_X-1 || z >= Chunk.CHUNLK_LENGTH_Z-1) return null;
+			return meshes[x][z];
+		}
+		var geometry = null;
 		var boxes = null;
     	function getMesherResult() {
     		var result = {
@@ -309,9 +330,10 @@ $(function(){
     	        }
     		},
 			refresh : function() {
-				var geometry = new THREE.Geometry();
+				geometry = new THREE.Geometry();
+				geometry.dynamic = true;
 				var result = getMesherResult();
-				//console.log(result);
+				
 				geometry.vertices.length = 0
 				geometry.faces.length = 0
 				for(var i=0;i < result.vertices.length;i++) {
@@ -342,11 +364,14 @@ $(function(){
 		        
 		        geometry.computeBoundingBox()
 		        geometry.computeBoundingSphere()
-				 
+		        
 				if(mesh) renderManager.removeFromScene(mesh)
 				mesh = new THREE.Mesh(geometry, material);
 		        mesh.doubleSided = false
 		        renderManager.addToScene(mesh);
+			},
+			getPos : function() {
+				return pos;
 			},
     		findObjectLocal : function(_x, _y, _z) {
     			var x = _x;
@@ -373,7 +398,8 @@ $(function(){
 				}else{
 					
 				}
-				this.refresh();
+				renderManager.enDisplayQueue(this);
+				//this.refresh();
 			},
 			destroyObject : function(_x, _y, _z) {
     			var x = _x - pos.x * x_size;
@@ -385,7 +411,17 @@ $(function(){
 				if(boxes[x][y][z]) {
 					boxes[x][y][z] = null;
 				}
-				this.refresh();
+				var chunk = [];
+				if(x == 0) chunk.push(worldManager.getChunk(pos.x-1, pos.z));
+				if(x == x_size-1) chunk.push(worldManager.getChunk(pos.x+1, pos.z));
+				if(z == 0) chunk.push(worldManager.getChunk(pos.x, pos.z-1));
+				if(z == z_size-1) chunk.push(worldManager.getChunk(pos.x, pos.z+1));
+				for(var i=0;i < chunk.length;i++) {
+					//chunk[i].refresh();
+					renderManager.enDisplayQueue(chunk[i]);
+				}
+				renderManager.enDisplayQueue(this);
+				//this.refresh();
 			},
 			get_numofbox : function(x,y,z,type,range) {
 				var num = 0;
@@ -411,6 +447,7 @@ $(function(){
 				return num;
 			},
 			enterFrame : function() {
+				return;
 				var self = this;
 	    		for(var x = 0;x < x_size;x++) {
 	        		for(var z = 0;z < z_size;z++) {
@@ -452,9 +489,8 @@ $(function(){
 			}
 		}
 	}
-	WorldManager.WORLD_WIDTH = 16;
 	function WorldManager() {
-    	var renderManager = new RenderManager(640, 500);
+    	var renderManager = new RenderManager(window.innerWidth, window.innerHeight);
 		var x_size = WorldManager.WORLD_WIDTH;
 		var z_size = WorldManager.WORLD_WIDTH;
 		
@@ -528,7 +564,7 @@ $(function(){
 		        	//既にboxesに入っている
 		        }else if(obj.getClass() == "Item"){
 		        	items[obj.getID()] = obj;
-			        renderManager.addToScene(obj);
+			        renderManager.addToScene(obj.getMesh());
 		        }
 			},
 			remove : function(obj) {
@@ -564,7 +600,7 @@ $(function(){
 				if(start_z < 0) start_z = 0;
 				for(var i=start_x;i <= end_x;i++) {
 					for(var j=start_z;j <= end_z;j++) {
-						chunk[i][j].refresh();
+						renderManager.enDisplayQueue(chunk[i][j]);
 					}
 				}
 			},
@@ -588,9 +624,6 @@ $(function(){
 				var z = Math.floor(_z / Chunk.CHUNLK_LENGTH_Z);
 				if(chunk[x][z]) {
 					chunk[x][z].destroyObject(_x, _y, _z);
-				}
-				if(current_chunk != chunk[x][z]) {
-					current_chunk.refresh();
 				}
 				//TODO: オブジェクトをアイテム化して床に落とす
 	        	var item = metaItem.getInstance(renderManager);
@@ -668,7 +701,7 @@ $(function(){
 			p.add(direction);
 			camera.lookAt(p);
 		}
-		renderManager.addEnterFrameListener(function() {
+    	setInterval(function(){
 			var below = worldManager.findObject(pos.x, pos.y-1, pos.z);
 			//TODO: 下にブロックがなかったら下に落ちる
 			if(below) {
@@ -677,6 +710,8 @@ $(function(){
 				pos.y -= 0.05;
 				refreshCameraPosition();
 			}
+    	}, 1000/60);
+		renderManager.addEnterFrameListener(function() {
 		});
 		return {
 			getPos : function() {
@@ -866,11 +901,11 @@ $(function(){
 	}
 	function MetaItem() {
     	var geometry = new THREE.CubeGeometry(0.2, 0.2, 0.2);
-        var material = new THREE.MeshPhongMaterial({
+        var material = new THREE.MeshBasicMaterial({
             color: 0xffffff, ambient: 0xffffff,
             specular: 0xcccccc, shininess:50, metal:true,
-            map: THREE.ImageUtils.loadTexture('/images/01.png') });
-		var shape = "";
+            map: THREE.ImageUtils.loadTexture('/images/texture.png') });
+        var shape = "";
 		return {
 			getInstance : function(renderManager) {
 				return new InstanceOfMetaItem(renderManager, geometry, material);
