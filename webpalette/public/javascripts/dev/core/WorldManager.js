@@ -27,12 +27,20 @@ $(function(){
 		camera.lookAt(new THREE.Vector3(0, 0, 0));
 		scene.add(camera);
 		//ライトの作成
-		var light = new THREE.DirectionalLight(0xcccccc);
+		var light = new THREE.DirectionalLight(0xcccccc, 0.1);
 		light.position = new THREE.Vector3(0.577, 0.577, 0.577);
 		scene.add(light);
+		/*
+		var light = new THREE.PointLight( 0xcccccc, 1, 200 );
+		light.position.x = 100;
+		light.position.y = 100;
+		light.position.z = 100;
+		scene.add(light);
+		*/
+		/*
 		var ambient = new THREE.AmbientLight(0x333333);
 		scene.add(ambient);
-		
+		*/
 		var listeners = [];
 		var display_queue = [];
 		return {
@@ -159,7 +167,8 @@ $(function(){
     		var result = {
     				vertices : [],
     				faces : [],
-    				uvs : []
+    				uvs : [],
+    				colors : []
     		}
     		var vertex_map = {};
     		for(var x = 0;x < x_size;x++) {
@@ -184,14 +193,15 @@ $(function(){
     		}
     		function search_surface_part(x,z) {
     			for(var y = y_size-1;y >= 0;y--) {
-    				if(boxes[x][y][z] == null) {
-    					if(x < x_size-1 && boxes[x+1][y][z]) {
+    				if(boxes[x][y][z].type == null) {
+    					if(x < x_size-1 && boxes[x+1][y][z].type) {
     						var q1 = add_vertex([x+1,y,z]);
     						var q2 =add_vertex([x+1,y,z+1]);
     						var q3 =add_vertex([x+1,y+1,z+1]);
     						var q4 =add_vertex([x+1,y+1,z]);
     						result.faces.push([q1,q2,q3,q4]);
-    						result.uvs.push(get_uv(boxes[x+1][y][z]));
+    						result.uvs.push(get_uv(boxes[x+1][y][z].type));
+    						result.colors.push(boxes[x][y][z].brightness);
     					}else if(x == x_size-1){
     						var chunk1 = worldManager.getChunk(pos.x+1, pos.z);
     						if(chunk1) {
@@ -203,16 +213,18 @@ $(function(){
             						var q4 =add_vertex([x+1,y+1,z]);
             						result.faces.push([q1,q2,q3,q4]);
             						result.uvs.push(get_uv(box1));
+            						result.colors.push(boxes[x][y][z].brightness);
         						}
     						}
     					}
-    					if(x > 0 && boxes[x-1][y][z]) {
+    					if(x > 0 && boxes[x-1][y][z].type) {
     						var q1 = add_vertex([x,y,z]);
     						var q2 =add_vertex([x,y+1,z]);
     						var q3 =add_vertex([x,y+1,z+1]);
     						var q4 =add_vertex([x,y,z+1]);
     						result.faces.push([q1,q2,q3,q4]);
-    						result.uvs.push(get_uv(boxes[x-1][y][z]));
+    						result.uvs.push(get_uv(boxes[x-1][y][z].type));
+    						result.colors.push(boxes[x][y][z].brightness);
     					}else if(x == 0){
     						var chunk1 = worldManager.getChunk(pos.x-1, pos.z);
     						if(chunk1) {
@@ -224,32 +236,36 @@ $(function(){
             						var q4 =add_vertex([x,y,z+1]);
             						result.faces.push([q1,q2,q3,q4]);
             						result.uvs.push(get_uv(box1));
+            						result.colors.push(boxes[x][y][z].brightness);
         						}
     						}
     					}
-    					if(y < y_size-1 && boxes[x][y+1][z]) {
+    					if(y < y_size-1 && boxes[x][y+1][z].type) {
     						var q1 = add_vertex([x, y+1,z]);
     						var q2 =add_vertex([x+1,y+1,z]);
     						var q3 =add_vertex([x+1,y+1,z+1]);
     						var q4 =add_vertex([x,  y+1,z+1]);
     						result.faces.push([q1,q2,q3,q4]);
-    						result.uvs.push(get_uv(boxes[x][y+1][z]));
+    						result.uvs.push(get_uv(boxes[x][y+1][z].type));
+    						result.colors.push(boxes[x][y][z].brightness);
     					}
-    					if(y>0 && boxes[x][y-1][z]) {
+    					if(y>0 && boxes[x][y-1][z].type) {
     						var q1 = add_vertex([x,  y,z]);
     						var q2 = add_vertex([x,  y,z+1]);
     						var q3 = add_vertex([x+1,y,z+1]);
     						var q4 = add_vertex([x+1,y,z]);
     						result.faces.push([q1,q2,q3,q4]);
-    						result.uvs.push(get_uv(boxes[x][y-1][z]));
+    						result.uvs.push(get_uv(boxes[x][y-1][z].type));
+    						result.colors.push(boxes[x][y][z].brightness);
     					}
-    					if(z < z_size-1 && boxes[x][y][z+1]) {
+    					if(z < z_size-1 && boxes[x][y][z+1].type) {
     						var q1 = add_vertex([x,  y,  z+1]);
     						var q2 = add_vertex([x,  y+1,z+1]);
     						var q3 = add_vertex([x+1,y+1,z+1]);
     						var q4 = add_vertex([x+1,y,  z+1]);
     						result.faces.push([q1,q2,q3,q4]);
-    						result.uvs.push(get_uv(boxes[x][y][z+1]));
+    						result.uvs.push(get_uv(boxes[x][y][z+1].type));
+    						result.colors.push(boxes[x][y][z].brightness);
     					}else if(z == z_size-1){
     						var chunk1 = worldManager.getChunk(pos.x, pos.z+1);
     						if(chunk1) {
@@ -261,16 +277,18 @@ $(function(){
             						var q4 = add_vertex([x+1,y,  z+1]);
             						result.faces.push([q1,q2,q3,q4]);
             						result.uvs.push(get_uv(box1));
+            						result.colors.push(boxes[x][y][z].brightness);
         						}
     						}
     					}
-    					if(z>0 && boxes[x][y][z-1]) {
+    					if(z>0 && boxes[x][y][z-1].type) {
     						var q1 = add_vertex([x,  y,  z]);
     						var q2 = add_vertex([x+1,y,  z]);
     						var q3 = add_vertex([x+1,y+1,z]);
     						var q4 = add_vertex([x,  y+1,z]);
     						result.faces.push([q1,q2,q3,q4]);
-    						result.uvs.push(get_uv(boxes[x][y][z-1]));
+    						result.uvs.push(get_uv(boxes[x][y][z-1].type));
+    						result.colors.push(boxes[x][y][z].brightness);
     					}else if(z == 0){
     						var chunk1 = worldManager.getChunk(pos.x, pos.z-1);
     						if(chunk1) {
@@ -282,6 +300,7 @@ $(function(){
             						var q4 = add_vertex([x,  y+1,z]);
             						result.faces.push([q1,q2,q3,q4]);
             						result.uvs.push(get_uv(box1));
+            						result.colors.push(boxes[x][y][z].brightness);
         						}
     						}
     					}
@@ -298,7 +317,7 @@ $(function(){
     		        for(var y = 0;y < y_size;y++) {
     		        	boxes[x][y] = [];
     			        for(var z = 0;z < z_size;z++) {
-    			        	boxes[x][y][z] = null;
+    			        	boxes[x][y][z] = {type:null,brightness:0xffffff};
     			        }
     		        }
     	        }
@@ -309,21 +328,21 @@ $(function(){
 	    		        	if(hpoint > y) {
 	    		        		var r = Math.random() * 10;
 	    		        		if(this.get_numofbox(x,y,z,5,1)) {
-	    		        			if(r < 3) boxes[x][y][z] = 5;
-	    		        			else boxes[x][y][z] = 2;
+	    		        			if(r < 3) boxes[x][y][z].type = 5;
+	    		        			else boxes[x][y][z].type = 2;
 	    		        		}else{
 	    		        			if(r <= 0.01){
-	    		        				boxes[x][y][z] = 5;
-	    		        			}else boxes[x][y][z] = 2;
+	    		        				boxes[x][y][z].type = 5;
+	    		        			}else boxes[x][y][z].type = 2;
 	    		        		}
 	    		        	}else if(hpoint == y) {
 	    		        		if(Math.random() * 10 <= 1) {
-		    		        		boxes[x][y][z] = 2;
+		    		        		boxes[x][y][z].type = 2;
 	    		        		}else{
-		    		        		boxes[x][y][z] = 1;
+		    		        		boxes[x][y][z].type = 1;
 	    		        		}
 	    		        	}else{
-	    		        		boxes[x][y][z] = null;
+	    		        		boxes[x][y][z].type = null;
 	    		        	}
 	    		        }
 			        }
@@ -346,15 +365,20 @@ $(function(){
 				    geometry.faceVertexUvs[0].push(result.uvs[i]);
 					var q = result.faces[i];
 					var f = new THREE.Face4(q[0], q[1], q[2], q[3]);
-					f.color = new THREE.Color(0x000000);
+					f.color = new THREE.Color(result.colors[i]);
 					f.vertexColors = [f.color,f.color,f.color,f.color];
 					geometry.faces.push(f);
 				}
-				
 		        var material = new THREE.MeshBasicMaterial({
-		            color: 0xffffff, ambient: 0xffffff,
+		            color: 0xffffff, vertexColors:true, ambient: 0xffffff,
 		            specular: 0xcccccc, shininess:50, metal:true,
 		            map: THREE.ImageUtils.loadTexture('/images/texture.png') });
+		        /*
+		        var material = new THREE.MeshBasicMaterial({
+		            color: 0x111111, ambient: 0xffffff,
+		            specular: 0xcccccc, shininess:50, metal:true,
+		            map: THREE.ImageUtils.loadTexture('/images/texture.png') });
+		           */
 		        
 		        geometry.computeFaceNormals()
 		        
@@ -365,10 +389,12 @@ $(function(){
 		        geometry.computeBoundingBox()
 		        geometry.computeBoundingSphere()
 		        
+		        
 				if(mesh) renderManager.removeFromScene(mesh)
 				mesh = new THREE.Mesh(geometry, material);
 		        mesh.doubleSided = false
 		        renderManager.addToScene(mesh);
+		        console.log("Material",geometry.faces[0].materialIndex);
 			},
 			getPos : function() {
 				return pos;
@@ -379,7 +405,7 @@ $(function(){
     			var z = _z;
     			if(x < 0 || y < 0 || z < 0) return null;
     			if(x >= x_size || y >= y_size || z >= z_size) return null;
-    			return boxes[x][y][z];
+    			return boxes[x][y][z].type;
     		},
     		findObject : function(_x, _y, _z) {
     			var x = _x - pos.x * x_size;
@@ -387,19 +413,49 @@ $(function(){
     			var z = _z - pos.z * z_size;
     			if(x < 0 || y < 0 || z < 0) return null;
     			if(x >= x_size || y >= y_size || z >= z_size) return null;
-    			return boxes[x][y][z];
+    			return boxes[x][y][z].type;
     		},
 			createObject : function(_x, _y, _z, type) {
     			var x = _x - pos.x * x_size;
     			var y = _y;
     			var z = _z - pos.z * z_size;
-				if(boxes[x][y][z] == null) {
-					boxes[x][y][z] = type;
+				if(boxes[x][y][z].type == null) {
+					boxes[x][y][z].type = type;
+					var light = new THREE.PointLight( 0xffffff, 1, 100 );
+					light.position.x = _x;
+					light.position.y = _y+1;
+					light.position.z = _z;
+					renderManager.scene.add(light);
 				}else{
 					
 				}
+				var chunk = [];
+				if(x == 0) chunk.push(worldManager.getChunk(pos.x-1, pos.z));
+				if(x == x_size-1) chunk.push(worldManager.getChunk(pos.x+1, pos.z));
+				if(z == 0) chunk.push(worldManager.getChunk(pos.x, pos.z-1));
+				if(z == z_size-1) chunk.push(worldManager.getChunk(pos.x, pos.z+1));
+				for(var i=0;i < chunk.length;i++) {
+					renderManager.enDisplayQueue(chunk[i]);
+				}
 				renderManager.enDisplayQueue(this);
 				//this.refresh();
+			},
+			calBrightness : function(bx, by, bz) {
+				var bs = [];
+				bs.push(boxes[bx+1][by][bz]);
+				bs.push(boxes[bx-1][by][bz]);
+				bs.push(boxes[bx][by][bz+1]);
+				bs.push(boxes[bx][by][bz-1]);
+				bs.push(boxes[bx][by+1][bz]);
+				bs.push(boxes[bx][by-1][bz]);
+				var max = 0;
+				for(var i=0;i < bs.length;i++) {
+					if(bs[i].type==null && max < bs[i].brightness) {
+						max = bs[i].brightness - 0x111111;
+					}
+				}
+				if(max < 0) max = 0;
+				boxes[bx][by][bz].brightness = max;
 			},
 			destroyObject : function(_x, _y, _z) {
     			var x = _x - pos.x * x_size;
@@ -408,8 +464,9 @@ $(function(){
     			console.log("destroy", x, y, z);
     			if(x < 0 || y < 0 || z < 0) return null;
     			if(x >= x_size || y >= y_size || z >= z_size) return null;
-				if(boxes[x][y][z]) {
-					boxes[x][y][z] = null;
+				if(boxes[x][y][z].type) {
+					boxes[x][y][z].type = null;
+					this.calBrightness(x,y,z);
 				}
 				var chunk = [];
 				if(x == 0) chunk.push(worldManager.getChunk(pos.x-1, pos.z));
@@ -417,7 +474,6 @@ $(function(){
 				if(z == 0) chunk.push(worldManager.getChunk(pos.x, pos.z-1));
 				if(z == z_size-1) chunk.push(worldManager.getChunk(pos.x, pos.z+1));
 				for(var i=0;i < chunk.length;i++) {
-					//chunk[i].refresh();
 					renderManager.enDisplayQueue(chunk[i]);
 				}
 				renderManager.enDisplayQueue(this);
@@ -440,7 +496,7 @@ $(function(){
 				for(var xx=sx;xx<=ex;xx++) {
 					for(var yy=sy;yy<=ey;yy++) {
 						for(var zz=sz;zz<=ez;zz++) {
-							if(boxes[xx][yy][zz] == type) num++;
+							if(boxes[xx][yy][zz].type == type) num++;
 						}
 					}
 				}
@@ -835,30 +891,8 @@ $(function(){
 		}
 	}
 	
-	function InstanceOfMetaObject(_renderManager, geometry, material) {
-		var id = "i";//+new Date().getTime().toString(36);
-		var mesh = null;
-		var renderManager = _renderManager;
-		/*
-        mesh = new THREE.Mesh(geometry, material);
-        mesh.rot = new THREE.Vector3(0,0,0);
-        */
+	function InstanceOfMetaObject() {
 		return {
-			getID : function() {
-				return id;
-			},
-			getClass : function() {
-				return "Object";
-			},
-			getMesh : function() {
-				return mesh;
-			},
-			setPosition : function(x, y, z) {
-		        //mesh.position = new THREE.Vector3(x,y,z);
-			},
-			destroy : function() {
-				//renderManager.scene.remove(mesh);
-			}
 		}
 	}
 	function MetaObject() {
