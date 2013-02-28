@@ -206,13 +206,13 @@ $(function(){
     						var chunk1 = worldManager.getChunk(pos.x+1, pos.z);
     						if(chunk1) {
         						var box1 = chunk1.findObjectLocal(0, y, z);
-        						if(box1) {
+        						if(box1 && box1.type) {
             						var q1 = add_vertex([x+1,y,z]);
             						var q2 =add_vertex([x+1,y,z+1]);
             						var q3 =add_vertex([x+1,y+1,z+1]);
             						var q4 =add_vertex([x+1,y+1,z]);
             						result.faces.push([q1,q2,q3,q4]);
-            						result.uvs.push(get_uv(box1));
+            						result.uvs.push(get_uv(box1.type));
             						result.colors.push(boxes[x][y][z].brightness);
         						}
     						}
@@ -229,13 +229,13 @@ $(function(){
     						var chunk1 = worldManager.getChunk(pos.x-1, pos.z);
     						if(chunk1) {
         						var box1 = chunk1.findObjectLocal(Chunk.CHUNLK_LENGTH_X-1, y, z);
-        						if(box1) {
+        						if(box1 && box1.type) {
             						var q1 = add_vertex([x,y,z]);
             						var q2 =add_vertex([x,y+1,z]);
             						var q3 =add_vertex([x,y+1,z+1]);
             						var q4 =add_vertex([x,y,z+1]);
             						result.faces.push([q1,q2,q3,q4]);
-            						result.uvs.push(get_uv(box1));
+            						result.uvs.push(get_uv(box1.type));
             						result.colors.push(boxes[x][y][z].brightness);
         						}
     						}
@@ -270,13 +270,13 @@ $(function(){
     						var chunk1 = worldManager.getChunk(pos.x, pos.z+1);
     						if(chunk1) {
         						var box1 = chunk1.findObjectLocal(x, y, 0);
-        						if(box1) {
+        						if(box1 && box1.type) {
             						var q1 = add_vertex([x,  y,  z+1]);
             						var q2 = add_vertex([x,  y+1,z+1]);
             						var q3 = add_vertex([x+1,y+1,z+1]);
             						var q4 = add_vertex([x+1,y,  z+1]);
             						result.faces.push([q1,q2,q3,q4]);
-            						result.uvs.push(get_uv(box1));
+            						result.uvs.push(get_uv(box1.type));
             						result.colors.push(boxes[x][y][z].brightness);
         						}
     						}
@@ -293,13 +293,13 @@ $(function(){
     						var chunk1 = worldManager.getChunk(pos.x, pos.z-1);
     						if(chunk1) {
         						var box1 = chunk1.findObjectLocal(x, y, Chunk.CHUNLK_LENGTH_Z-1);
-        						if(box1) {
+        						if(box1 && box1.type) {
             						var q1 = add_vertex([x,  y,  z]);
             						var q2 = add_vertex([x+1,y,  z]);
             						var q3 = add_vertex([x+1,y+1,z]);
             						var q4 = add_vertex([x,  y+1,z]);
             						result.faces.push([q1,q2,q3,q4]);
-            						result.uvs.push(get_uv(box1));
+            						result.uvs.push(get_uv(box1.type));
             						result.colors.push(boxes[x][y][z].brightness);
         						}
     						}
@@ -317,7 +317,10 @@ $(function(){
     		        for(var y = 0;y < y_size;y++) {
     		        	boxes[x][y] = [];
     			        for(var z = 0;z < z_size;z++) {
-    			        	boxes[x][y][z] = {type:null,brightness:0xffffff};
+    			        	boxes[x][y][z] = {
+    			        			type:null,
+    			        			brightness:0x000000
+    			        			};
     			        }
     		        }
     	        }
@@ -343,6 +346,7 @@ $(function(){
 	    		        		}
 	    		        	}else{
 	    		        		boxes[x][y][z].type = null;
+	    		        		boxes[x][y][z].brightness = 0xffffff;
 	    		        	}
 	    		        }
 			        }
@@ -405,7 +409,30 @@ $(function(){
     			var z = _z;
     			if(x < 0 || y < 0 || z < 0) return null;
     			if(x >= x_size || y >= y_size || z >= z_size) return null;
-    			return boxes[x][y][z].type;
+    			return boxes[x][y][z];
+    		},
+    		findObjectLocal2 : function(_x, _y, _z) {
+    			var x = _x;
+    			var y = _y;
+    			var z = _z;
+    			var chunk1 = this
+    			if(x < 0) {
+    				chunk1 = worldManager.getChunk(pos.x-1, pos.z);
+    				x += Chunk.CHUNLK_LENGTH_X;
+    			}
+    			if(z < 0) {
+    				chunk1 = worldManager.getChunk(pos.x, pos.z-1);
+    				z += Chunk.CHUNLK_LENGTH_Z;
+    			}
+    			if(x >= x_size) {
+    				chunk1 = worldManager.getChunk(pos.x+1, pos.z);
+    				x -= Chunk.CHUNLK_LENGTH_X;
+    			}
+    			if(z >= z_size) {
+    				chunk1 = worldManager.getChunk(pos.x, pos.z+1);
+    				z -= Chunk.CHUNLK_LENGTH_Z;
+    			}
+    			return chunk1.findObjectLocal(x,y,z);
     		},
     		findObject : function(_x, _y, _z) {
     			var x = _x - pos.x * x_size;
@@ -421,11 +448,8 @@ $(function(){
     			var z = _z - pos.z * z_size;
 				if(boxes[x][y][z].type == null) {
 					boxes[x][y][z].type = type;
-					var light = new THREE.PointLight( 0xffffff, 1, 100 );
-					light.position.x = _x;
-					light.position.y = _y+1;
-					light.position.z = _z;
-					renderManager.scene.add(light);
+					boxes[x][y][z].brightness = 0xffffff;
+					this.calBrightnessMap(x,y,z);
 				}else{
 					
 				}
@@ -440,22 +464,104 @@ $(function(){
 				renderManager.enDisplayQueue(this);
 				//this.refresh();
 			},
-			calBrightness : function(bx, by, bz) {
-				var bs = [];
-				bs.push(boxes[bx+1][by][bz]);
-				bs.push(boxes[bx-1][by][bz]);
-				bs.push(boxes[bx][by][bz+1]);
-				bs.push(boxes[bx][by][bz-1]);
-				bs.push(boxes[bx][by+1][bz]);
-				bs.push(boxes[bx][by-1][bz]);
-				var max = 0;
-				for(var i=0;i < bs.length;i++) {
-					if(bs[i].type==null && max < bs[i].brightness) {
-						max = bs[i].brightness - 0x111111;
+			each : function(option,cb) {
+				var sx = option.x-option.range;
+				var sy = option.y-option.range;
+				var sz = option.z-option.range;
+				var ex = option.x+option.range;
+				var ey = option.y+option.range;
+				var ez = option.z+option.range;
+				for(var x=sx;x<ex;x++) {
+					for(var y=sy;y<ey;y++) {
+						for(var z=sz;z<ez;z++) {
+							cb(x,y,z);
+						}
 					}
 				}
-				if(max < 0) max = 0;
-				boxes[bx][by][bz].brightness = max;
+			},
+			calBrightnessMap : function(bx, by, bz) {
+				var self = this;
+				this.each({
+					x:bx,
+					y:by,
+					z:bz,
+					range:5
+				},function(bx,by,bz){
+					var box = self.findObjectLocal2(bx,by,bz);
+					if(box) {
+						if(box.brightness != 0xffffff) {
+							box.brightness = 0x111111;
+						}
+					}
+				})
+				this.each({
+					x:bx,
+					y:by,
+					z:bz,
+					range:7
+				},function(bx,by,bz){
+					var box = self.findObjectLocal2(bx,by,bz);
+					if(box) {
+						if(box.brightness == 0xffffff) {
+							self.calBrightness(bx,by,bz);
+						}
+					}
+				})
+			},/*
+			calBrightness2 : function(bx, by, bz) {
+				var self = this;
+				function create_brightness_map(bx, by, bz) {
+					var map = {};
+					function s(bx, by, bz, b) {
+						if(b < 0x111111*5) return;
+						var obj = self.findObjectLocal2(bx,by,bz);
+						if(map[bx+"-"+by+"-"+bz]) return;
+						map[bx+"-"+by+"-"+bz] = true;
+						if(obj && obj.type==null) {
+							if(self.findObjectLocal2(bx,by,bz).brightness < b) self.findObjectLocal2(bx,by,bz).brightness = b;
+						}else{
+							return;
+						}
+						s(bx+1,by,bz,b-0x111111);
+						s(bx-1,by,bz,b-0x111111);
+						s(bx,by,bz+1,b-0x111111);
+						s(bx,by,bz-1,b-0x111111);
+						s(bx,by+1,bz,b-0x111111);
+						s(bx,by-1,bz,b-0x111111);
+					}
+				}
+			},*/
+			calBrightness : function(bx, by, bz) {
+				var self = this;
+				create_brightness_map(bx,by,bz);
+				function create_brightness_map(bx, by, bz) {
+					var map = {};
+					var br = self.findObjectLocal2(bx,by,bz).brightness - 0x111111;
+					if(br < 0xeeeeee) return;
+					s(bx+1,by,bz,br);
+					s(bx-1,by,bz,br);
+					s(bx,by,bz+1,br);
+					s(bx,by,bz-1,br);
+					s(bx,by+1,bz,br);
+					s(bx,by-1,bz,br);
+					function s(bx, by, bz, b) {
+						if(b < 0x777777) return;
+						var obj = self.findObjectLocal2(bx,by,bz);
+						if(map[bx+"-"+by+"-"+bz]) return;
+						map[bx+"-"+by+"-"+bz] = true;
+						if(obj && obj.type==null) {
+							if(self.findObjectLocal2(bx,by,bz).brightness < b) self.findObjectLocal2(bx,by,bz).brightness = b;
+						}else{
+							return;
+						}
+						s(bx+1,by,bz,b-0x111111);
+						s(bx-1,by,bz,b-0x111111);
+						s(bx,by,bz+1,b-0x111111);
+						s(bx,by,bz-1,b-0x111111);
+						s(bx,by+1,bz,b-0x111111);
+						s(bx,by-1,bz,b-0x111111);
+					}
+				}
 			},
 			destroyObject : function(_x, _y, _z) {
     			var x = _x - pos.x * x_size;
@@ -466,7 +572,8 @@ $(function(){
     			if(x >= x_size || y >= y_size || z >= z_size) return null;
 				if(boxes[x][y][z].type) {
 					boxes[x][y][z].type = null;
-					this.calBrightness(x,y,z);
+					boxes[x][y][z].brightness = 0x111111;
+					this.calBrightnessMap(x,y,z);
 				}
 				var chunk = [];
 				if(x == 0) chunk.push(worldManager.getChunk(pos.x-1, pos.z));
