@@ -1,4 +1,4 @@
-world engine
+WebGL Voxel
 ==========
-世界のシミュレートを目標としている。
-webGLで実装している。
+
+DEMO http://syuhei.jpn.org/world/webgl.html
