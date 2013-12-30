@@ -4,11 +4,18 @@ $(function(){
 		var y_size = _y_size;
 		var z_size = _z_size;
 		var map = [];
+		var gake = true;
+		var param1 = x_size/2-10;
 		for(var i=0;i < x_size;i++) {
 			map[i] = [];
 			for(var j=0;j < z_size;j++) {
-				map[i][j] = Math.floor(y_size / 2);
+				if(i > param1 && i < param1+5) {
+					map[i][j] = Math.floor(y_size / 2 - 7);
+				}else{
+					map[i][j] = Math.floor(y_size / 2);
+				}
 			}
+			param1 += Math.floor(Math.random()*2) - 1;
 		}
 		p(0,0,x_size,z_size, 80);
 		for(var i=0;i < x_size;i++) {

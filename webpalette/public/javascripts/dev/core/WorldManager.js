@@ -27,7 +27,7 @@ $(function(){
 		camera.lookAt(new THREE.Vector3(0, 0, 0));
 		scene.add(camera);
 		//ライトの作成
-		var light = new THREE.DirectionalLight(0xcccccc, 0.1);
+		var light = new THREE.DirectionalLight(0xcccccc, 1);
 		light.position = new THREE.Vector3(0.577, 0.577, 0.577);
 		scene.add(light);
 		/*
@@ -319,7 +319,7 @@ $(function(){
     			        for(var z = 0;z < z_size;z++) {
     			        	boxes[x][y][z] = {
     			        			type:null,
-    			        			brightness:0x000000
+    			        			brightness:0xffffff
     			        			};
     			        }
     		        }
@@ -449,7 +449,7 @@ $(function(){
 				if(boxes[x][y][z].type == null) {
 					boxes[x][y][z].type = type;
 					boxes[x][y][z].brightness = 0xffffff;
-					this.calBrightnessMap(x,y,z);
+					//this.calBrightnessMap(x,y,z);
 				}else{
 					
 				}
@@ -485,12 +485,12 @@ $(function(){
 					x:bx,
 					y:by,
 					z:bz,
-					range:5
+					range:2
 				},function(bx,by,bz){
 					var box = self.findObjectLocal2(bx,by,bz);
 					if(box) {
 						if(box.brightness != 0xffffff) {
-							box.brightness = 0x111111;
+							box.brightness = 0xffffff;
 						}
 					}
 				})
@@ -498,69 +498,71 @@ $(function(){
 					x:bx,
 					y:by,
 					z:bz,
-					range:7
+					range:6
 				},function(bx,by,bz){
 					var box = self.findObjectLocal2(bx,by,bz);
 					if(box) {
-						if(box.brightness == 0xffffff) {
+						if(box.type) {
+							var metaObj = worldManager.getMetaObject(box.type);
+							if(metaObj._isLight()) {
+								self.calBrightness(bx,by,bz);
+							}
+						}else if(box.brightness==0xffffff){
 							self.calBrightness(bx,by,bz);
 						}
 					}
 				})
-			},/*
-			calBrightness2 : function(bx, by, bz) {
-				var self = this;
-				function create_brightness_map(bx, by, bz) {
-					var map = {};
-					function s(bx, by, bz, b) {
-						if(b < 0x111111*5) return;
-						var obj = self.findObjectLocal2(bx,by,bz);
-						if(map[bx+"-"+by+"-"+bz]) return;
-						map[bx+"-"+by+"-"+bz] = true;
-						if(obj && obj.type==null) {
-							if(self.findObjectLocal2(bx,by,bz).brightness < b) self.findObjectLocal2(bx,by,bz).brightness = b;
-						}else{
-							return;
-						}
-						s(bx+1,by,bz,b-0x111111);
-						s(bx-1,by,bz,b-0x111111);
-						s(bx,by,bz+1,b-0x111111);
-						s(bx,by,bz-1,b-0x111111);
-						s(bx,by+1,bz,b-0x111111);
-						s(bx,by-1,bz,b-0x111111);
-					}
-				}
-			},*/
+			},
 			calBrightness : function(bx, by, bz) {
 				var self = this;
 				create_brightness_map(bx,by,bz);
 				function create_brightness_map(bx, by, bz) {
 					var map = {};
 					var br = self.findObjectLocal2(bx,by,bz).brightness - 0x111111;
-					if(br < 0xeeeeee) return;
-					s(bx+1,by,bz,br);
-					s(bx-1,by,bz,br);
-					s(bx,by,bz+1,br);
-					s(bx,by,bz-1,br);
-					s(bx,by+1,bz,br);
-					s(bx,by-1,bz,br);
-					function s(bx, by, bz, b) {
-						if(b < 0x777777) return;
-						var obj = self.findObjectLocal2(bx,by,bz);
-						if(map[bx+"-"+by+"-"+bz]) return;
-						map[bx+"-"+by+"-"+bz] = true;
-						if(obj && obj.type==null) {
-							if(self.findObjectLocal2(bx,by,bz).brightness < b) self.findObjectLocal2(bx,by,bz).brightness = b;
-						}else{
-							return;
+					//if(br < 0xeeeeee) return;
+					dfs(bx,by,bz,0);
+					function dfs(x,y,z,l) {
+						map[x+"-"+y+"-"+z] = true;
+						var v = self.findObjectLocal2(x,y,z);
+						if(v && v.type==null && l > 0) {
+							var b = 0xffffff - 0x111111 * l;
+							if(v.brightness < b) v.brightness = b;
 						}
-						s(bx+1,by,bz,b-0x111111);
-						s(bx-1,by,bz,b-0x111111);
-						s(bx,by,bz+1,b-0x111111);
-						s(bx,by,bz-1,b-0x111111);
-						s(bx,by+1,bz,b-0x111111);
-						s(bx,by-1,bz,b-0x111111);
+						if(l > 0 && v.type) return;
+						if(!map[(x+1)+"-"+y+"-"+z] && l < 10) dfs(x+1,y,z,l+1);
+						if(!map[(x-1)+"-"+y+"-"+z] && l < 10) dfs(x-1,y,z,l+1);
+						if(!map[x+"-"+(y+1)+"-"+z] && l < 10) dfs(x,y+1,z,l+1);
+						if(!map[x+"-"+(y-1)+"-"+z] && l < 10) dfs(x,y-1,z,l+1);
+						if(!map[x+"-"+y+"-"+(z+1)] && l < 10) dfs(x,y,z+1,l+1);
+						if(!map[x+"-"+y+"-"+(z-1)] && l < 10) dfs(x,y,z-1,l+1);
 					}
+					/*
+					var queue = [];
+					var obj = self.findObjectLocal2(bx,by,bz);
+					queue.push({x:bx,y:by,z:bz,data:obj,l:0});	//enqueue(v)
+					map[bx+"-"+by+"-"+bz] = true;	//mark v as visited
+					while(queue.length > 0) {	//while queue not empty
+						var v = queue.shift();	//	v=dequeue()
+						//	process(v)
+						if(v.data && v.data.type==null && v.l > 0) {
+							var b = 0xffffff - 0x111111 * v.l;
+							if(v.data.brightness < b) v.data.brightness = b;
+						}
+				        //	for all unvisited vertices i adjacent to v
+						abc(v.x+1,v.y,v.z,v.l);
+						abc(v.x-1,v.y,v.z,v.l);
+						abc(v.x,v.y+1,v.z,v.l);
+						abc(v.x,v.y-1,v.z,v.l);
+						abc(v.x,v.y,v.z+1,v.l);
+						abc(v.x,v.y,v.z-1,v.l);
+						function abc(x,y,z,l) {
+							if(!map[x+"-"+y+"-"+z] && l < 6) {
+								queue.push({x:z,y:y,z:z,data:self.findObjectLocal2(x,y,z),l:l+1});
+								map[x+"-"+y+"-"+z] = true;//		mark i as visited
+							}
+						}
+					}
+					*/
 				}
 			},
 			destroyObject : function(_x, _y, _z) {
@@ -572,8 +574,8 @@ $(function(){
     			if(x >= x_size || y >= y_size || z >= z_size) return null;
 				if(boxes[x][y][z].type) {
 					boxes[x][y][z].type = null;
-					boxes[x][y][z].brightness = 0x111111;
-					this.calBrightnessMap(x,y,z);
+					//boxes[x][y][z].brightness = 0x111111;
+					//this.calBrightnessMap(x,y,z);
 				}
 				var chunk = [];
 				if(x == 0) chunk.push(worldManager.getChunk(pos.x-1, pos.z));
@@ -662,7 +664,13 @@ $(function(){
 		var boxes = [];
 		var items = {};
 		var render_pos = null;
-		var metaObject = new MetaObject();
+		var metaObjects = [null,
+		                  new MetaObject(1,{}),
+		                  new MetaObject(2,{}),
+		                  new MetaObject(3,{}),
+		                  new MetaObject(4,{_is_light:true,brightness:0xffffff}),
+		                  new MetaObject(5,{})
+		                  ];
 		var metaItem = new MetaItem();
 		var chunk = [];
 		for(var x=0;x < x_size;x++) {
@@ -716,6 +724,7 @@ $(function(){
     	});
     	inputManager.set("selectitem", function(e){
     		player.selectItem(e.number);
+    		//アイテムナンバー表示
     	});
 		return {
 			getChunk : function(x, z) {
@@ -793,11 +802,11 @@ $(function(){
 	        	item.setPosition(_x+0.5, _y+0.5, _z+0.5);
 	        	this.add(item);
 			},
-			createObject : function(_x,_y,_z) {
+			createObject : function(_x,_y,_z, type) {
 				var x = Math.floor(_x / Chunk.CHUNLK_LENGTH_X);
 				var z = Math.floor(_z / Chunk.CHUNLK_LENGTH_Z);
 				if(chunk[x][z]) {
-					chunk[x][z].createObject(_x, _y, _z, 2);
+					chunk[x][z].createObject(_x, _y, _z, type);
 				}
 			},
 			findObject : function(_x, _y, _z) {
@@ -824,6 +833,9 @@ $(function(){
 						return items[key];
 					}
 				}
+			},
+			getMetaObject : function(id) {
+				return metaObjects[id];
 			},
 			getStartPoint : function() {
 				var player_x = Math.floor(Chunk.CHUNLK_LENGTH_X * WorldManager.WORLD_WIDTH / 2);
@@ -855,6 +867,10 @@ $(function(){
 		var walkspeed = 0.2;
 		var selectedItem = 0;
 		var items = 2;
+		var pockets = [{
+			id:1,
+			num:5
+		}];
 		refreshCameraPosition();
 		function refreshCameraPosition() {
 			camera.position.setX(pos.x);
@@ -970,14 +986,15 @@ $(function(){
 				
 				if(intersects.length > 0) {
 					console.log(intersects[0]);
-					if(selectedItem == 0) {
+					var iteminfo = getItemInfo(pockets[selectedItem].id);
+					if(iteminfo.destroy_tool) {
 						if(intersects[0].distance < 4) {
 							worldManager.destroyObject(
 									Math.floor(intersects[0].point.x - intersects[0].face.normal.x/4),
 									Math.floor(intersects[0].point.y - intersects[0].face.normal.y/4),
 									Math.floor(intersects[0].point.z - intersects[0].face.normal.z/4));
 						}
-					}else{
+					}else if(iteminfo.settable){
 						if(items > 0 && intersects[0].distance < 4) {
 							items--;
 							console.log(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
@@ -985,7 +1002,8 @@ $(function(){
 							worldManager.createObject(
 									Math.floor(intersects[0].point.x + intersects[0].face.normal.x/4),
 									Math.floor(intersects[0].point.y + intersects[0].face.normal.y/4),
-									Math.floor(intersects[0].point.z + intersects[0].face.normal.z/4));
+									Math.floor(intersects[0].point.z + intersects[0].face.normal.z/4),
+									iteminfo.boxid);
 						}
 					}
 				} else {
@@ -994,6 +1012,8 @@ $(function(){
 			},
 			selectItem : function(i) {
 				selectedItem = i;
+				var iteminfo = getItemInfo(pockets[selectedItem].id);
+				display2d(iteminfo.name);
 			}
 		}
 	}
@@ -1002,16 +1022,23 @@ $(function(){
 		return {
 		}
 	}
-	function MetaObject() {
-    	var geometry = new THREE.CubeGeometry(1, 1, 1);
-        var material = new THREE.MeshPhongMaterial({
-            color: 0xffffff, ambient: 0xffffff,
-            specular: 0xcccccc, shininess:50, metal:true,
-            map: THREE.ImageUtils.loadTexture('/images/01.png') });
-		var shape = "";
+	function MetaObject(_tip_no,option) {
+		var tip_no = _tip_no;
+		var _is_light = false;
+		var brightness = 0;
+		if(option._is_light) {
+			_is_light = true;
+			brightness = option.brightness;
+		}
 		return {
 			getInstance : function(renderManager) {
 				return new InstanceOfMetaObject(renderManager, geometry, material);
+			},
+			getTipNo : function() {
+				return tip_no;
+			},
+			_isLight : function() {
+				return _is_light;
 			}
 		}
 	}
@@ -1046,7 +1073,24 @@ $(function(){
             color: 0xffffff, ambient: 0xffffff,
             specular: 0xcccccc, shininess:50, metal:true,
             map: THREE.ImageUtils.loadTexture('/images/texture.png') });
-        var shape = "";
+        /*
+		var vertices = [];
+		var faces = [];
+		vertices.push([0,0,0]);
+		vertices.push([1,0,0]);
+		vertices.push([1,0,1]);
+		vertices.push([0,0,1]);
+		vertices.push([0,1,0]);
+		vertices.push([1,1,0]);
+		vertices.push([1,1,1]);
+		vertices.push([0,1,1]);
+		faces.push([0,1,2,3]);
+		faces.push([0,1,2,3]);
+		faces.push([0,1,2,3]);
+		faces.push([0,1,2,3]);
+		faces.push([0,1,2,3]);
+		faces.push([4,5,6,7]);
+		*/
 		return {
 			getInstance : function(renderManager) {
 				return new InstanceOfMetaItem(renderManager, geometry, material);
@@ -1056,6 +1100,42 @@ $(function(){
 	
 	function MetaCreature() {
 		
+	}
+	var metaitems = {
+			"1" : {
+				name:"つるはし",
+				settable:false,
+				destroy_tool:true
+			},
+			"2" : {
+				name:"草",
+				settable:true,
+				destroy_tool:false,
+				boxid:1
+			},
+			"3" : {
+				name:"土",
+				settable:true,
+				destroy_tool:false,
+				boxid:2
+			},
+			"4" : {
+				name:"",
+				settable:true,
+				destroy_tool:false,
+				boxid:3
+			},
+			"5" : {
+				name:"",
+				settable:true,
+				destroy_tool:false
+			},
+	};
+	function getItemInfo(id) {
+		return metaitems[id];
+	}
+	function display2d(v) {
+		$("#2d").html("<div>"+v+"</div>");
 	}
 	
 	window.RenderManager = RenderManager;
