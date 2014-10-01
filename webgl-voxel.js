@@ -1,5 +1,5 @@
 $(function(){
-	WorldManager.WORLD_WIDTH = 12;
+	WorldManager.WORLD_WIDTH = 8;
 	Chunk.CHUNLK_LENGTH_X = 16;
 	Chunk.CHUNLK_LENGTH_Y = 64;
 	Chunk.CHUNLK_LENGTH_Z = 16;
@@ -86,7 +86,6 @@ $(function(){
 		var mousePos = {x:0,y:0};
 		var prevMousePos = {x:0,y:0};
 		window.addEventListener("keydown", function(e){
-			console.log(e.keyCode);
 			if(e.keyCode == 87) {
 				listeners["forward"]();
 			}
@@ -104,15 +103,15 @@ $(function(){
 			}
 		}, false);
 		window.addEventListener("mousemove", function(e){
-			if(true) {
-				  var movementX = e.movementX       ||
+			var movementX = e.movementX       ||
                   e.mozMovementX    ||
                   e.webkitMovementX ||
-                  0,
+                  null,
                   movementY = e.movementY       ||
                   e.mozMovementY    ||
                   e.webkitMovementY ||
                   0;
+			if(movementX != null) {
 				  listeners["pointermove"]({mx:movementX/window.innerWidth, my:-movementY/window.innerHeight});
 			}else{
 				prevMousePos.x = mousePos.x;
@@ -398,7 +397,6 @@ $(function(){
 				mesh = new THREE.Mesh(geometry, material);
 		        mesh.doubleSided = false
 		        renderManager.addToScene(mesh);
-		        console.log("Material",geometry.faces[0].materialIndex);
 			},
 			getPos : function() {
 				return pos;
@@ -569,7 +567,6 @@ $(function(){
     			var x = _x - pos.x * x_size;
     			var y = _y;
     			var z = _z - pos.z * z_size;
-    			console.log("destroy", x, y, z);
     			if(x < 0 || y < 0 || z < 0) return null;
     			if(x >= x_size || y >= y_size || z >= z_size) return null;
 				if(boxes[x][y][z].type) {
@@ -694,8 +691,8 @@ $(function(){
     		}else{
         		renderManager.blight(0xffffff);
     		}
-    		*/
     		$("#time").html(hour + "時");
+    		*/
     		
     		if(g_time % 10 == 0) {
     			current_chunk.enterFrame();
@@ -798,9 +795,9 @@ $(function(){
 					chunk[x][z].destroyObject(_x, _y, _z);
 				}
 				//TODO: オブジェクトをアイテム化して床に落とす
-	        	var item = metaItem.getInstance(renderManager);
-	        	item.setPosition(_x+0.5, _y+0.5, _z+0.5);
-	        	this.add(item);
+	        	//var item = metaItem.getInstance(renderManager);
+	        	//item.setPosition(_x+0.5, _y+0.5, _z+0.5);
+	        	//this.add(item);
 			},
 			createObject : function(_x,_y,_z, type) {
 				var x = Math.floor(_x / Chunk.CHUNLK_LENGTH_X);
@@ -961,7 +958,6 @@ $(function(){
 			},
 			changeDirection : function(mx, my) {
 				var th = ((mx > 0)?1:-1) * Math.abs(mx) * 320;
-				//console.log(th);
 				var dx = direction.x * Math.cos(th / 180 * Math.PI) - direction.z * Math.sin(th / 180 * Math.PI);
 				var dz = direction.x * Math.sin(th / 180 * Math.PI) + direction.z * Math.cos(th / 180 * Math.PI);
 				direction.setX(dx);
@@ -979,13 +975,11 @@ $(function(){
 				*/				
 			},
 			useitem : function() {
-				console.log("use item");
 				var projector = new THREE.Projector();
 				var ray = projector.pickingRay(new THREE.Vector3(0, 0, -1), camera);
 				var intersects = ray.intersectObjects(renderManager.scene.children);
 				
 				if(intersects.length > 0) {
-					console.log(intersects[0]);
 					var iteminfo = getItemInfo(pockets[selectedItem].id);
 					if(iteminfo.destroy_tool) {
 						if(intersects[0].distance < 4) {
@@ -997,8 +991,6 @@ $(function(){
 					}else if(iteminfo.settable){
 						if(items > 0 && intersects[0].distance < 4) {
 							items--;
-							console.log(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
-							console.log(intersects[0].face.normal.x/4,intersects[0].face.normal.y/4,intersects[0].face.normal.z/4)
 							worldManager.createObject(
 									Math.floor(intersects[0].point.x + intersects[0].face.normal.x/4),
 									Math.floor(intersects[0].point.y + intersects[0].face.normal.y/4),
@@ -1103,7 +1095,7 @@ $(function(){
 	}
 	var metaitems = {
 			"1" : {
-				name:"つるはし",
+				name:"pick",
 				settable:false,
 				destroy_tool:true
 			},

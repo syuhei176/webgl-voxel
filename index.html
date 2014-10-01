@@ -2,6 +2,14 @@
 <html lang="ja">
   <head><meta charset="UTF-8"></head>
   <body>
+    <style>
+        body {
+            font-family: YuGothic;
+            font-size: 18px;
+            font-weight: 500;
+            color: #333;
+        }
+    </style>
     <script src="libs/three.min.js"></script>
   	<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
     <script src="webgl-voxel.js"></script>
@@ -14,6 +22,9 @@
             }
             else if (this.mozRequestFullScreen) {
                 this.mozRequestFullScreen();
+            }
+            else if(this.msRequestFullscreen) {
+                this.msRequestFullscreen();
             }
             else {
                 alert("not found")
@@ -35,7 +46,7 @@
     <div style="position:absolute;top:250px;left:320px;">＋</div>
      -->
     <div style="position:absolute;top:100px;left:650px;">
-        <div>操作<br>W,S：前進、更新<br>マウス：視点移動<br>クリック：ツール適用<br>1:ブロックの削除ツール、2:ブロック設置ツール</div>
+        <div>操作<br>W,S：前進、後進<br>マウス：視点移動<br>クリック：ブロックを消す</div>
         <div style="font-size:5px;">
     <div id="2d"></div>
     <div id="time"></div>

@@ -17,7 +17,7 @@ $(function(){
 			}
 			param1 += Math.floor(Math.random()*2) - 1;
 		}
-		p(0,0,x_size,z_size, 80);
+		p(0,0,x_size,z_size, 48);
 		for(var i=0;i < x_size;i++) {
 			for(var j=0;j < z_size;j++) {
 				map[i][j] = Math.floor(map[i][j]);

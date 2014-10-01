@@ -1,0 +1,16 @@
+{
+  "name": "webgl-voxel",
+  "version": "0.0.1",
+  "description": "",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "gulp-install": "^0.2.0",
+    "gulp": "~3.8.7",
+    "gulp-webserver": "*",
+    "gulp-connect": "~2.0.6",
+    "gulp-install": "^0.2.0"
+  },
+  "author": "",
+  "license": "MIT"
+}
