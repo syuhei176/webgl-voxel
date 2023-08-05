@@ -65,7 +65,7 @@ export class Chunk {
     this.renderManager.addToScene(this.mesh);
   }
 
-  getMesherResult() {
+  getMeshResult() {
     var result: {
       vertices: number[][],
       faces: number[][],
@@ -217,10 +217,11 @@ export class Chunk {
     }
 
     function get_uv(index: number) {
-      var u1 = new THREE.Vector2(index * TEXTURE_TIP_RATIO, 0.9);
-      var u2 = new THREE.Vector2(index * TEXTURE_TIP_RATIO, 1);
-      var u3 = new THREE.Vector2((index + 1) * TEXTURE_TIP_RATIO, 1);
-      var u4 = new THREE.Vector2((index + 1) * TEXTURE_TIP_RATIO, 0.9);
+      const u1 = new THREE.Vector2(index * TEXTURE_TIP_RATIO, 0.9)
+      const u2 = new THREE.Vector2(index * TEXTURE_TIP_RATIO, 1)
+      const u3 = new THREE.Vector2((index + 1) * TEXTURE_TIP_RATIO, 1)
+      const u4 = new THREE.Vector2((index + 1) * TEXTURE_TIP_RATIO, 0.9)
+
       return [u1, u2, u3, u4];
     }
   }
@@ -272,8 +273,7 @@ export class Chunk {
   }
 
   refresh() {
-
-    var result = this.getMesherResult()
+    const result = this.getMeshResult()
 
     // this.geometry.vertices.length = 0
     // this.geometry.faces.length = 0
@@ -293,14 +293,24 @@ export class Chunk {
 
     for (var i = 0; i < result.faces.length; i++) {
       //this.geometry.faceVertexUvs[0].push(result.uvs[i]);
-      for (let j = 0; j < 4; j++) {
-        uvArray.push(result.uvs[i][j].x)
-        uvArray.push(result.uvs[i][j].y)
-      }
+      uvArray.push(result.uvs[i][0].x)
+      uvArray.push(result.uvs[i][0].y)
+      uvArray.push(result.uvs[i][1].x)
+      uvArray.push(result.uvs[i][1].y)
+      uvArray.push(result.uvs[i][2].x)
+      uvArray.push(result.uvs[i][2].y)
+
+      uvArray.push(result.uvs[i][0].x)
+      uvArray.push(result.uvs[i][0].y)
+      uvArray.push(result.uvs[i][2].x)
+      uvArray.push(result.uvs[i][2].y)
+      uvArray.push(result.uvs[i][3].x)
+      uvArray.push(result.uvs[i][3].y)
+
 
       // uvAttribute.setXY(i, result.uvs[i][0].x, result.uvs[i][0].y);
 
-      var q = result.faces[i];
+      const q = result.faces[i];
       //var f = new THREE.Face4(q[0], q[1], q[2], q[3]);
       //f.color = new THREE.Color(result.colors[i]);
       //f.vertexColors = [f.color, f.color, f.color, f.color];
@@ -317,48 +327,14 @@ export class Chunk {
     this.geometry.setFromPoints(vertices)
     this.geometry.setIndex(faces)
 
-    this.geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvArray), 4));
+    this.geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvArray), 2));
 
-    const material = new THREE.MeshBasicMaterial({
-      /*
-      color: 0xffffff,
-      vertexColors: true,
-      ambient: 0xffffff,
-      specular: 0xcccccc,
-      shininess: 50,
-      metal: true,
-      */
-      map: this.texture
-    })
-
-    /*
-    var material = new THREE.MeshBasicMaterial({
-        color: 0x111111, ambient: 0xffffff,
-        specular: 0xcccccc, shininess:50, metal:true,
-        map: THREE.ImageUtils.loadTexture('/images/texture.png') });
-       */
-
-    /*
-    this.geometry.computeFaceNormals()
-
-    this.geometry.verticesNeedUpdate = true
-    this.geometry.elementsNeedUpdate = true
-    this.geometry.normalsNeedUpdate = true
-    */
     this.geometry.attributes.position.needsUpdate = true;
 
     this.geometry.computeVertexNormals()
     this.geometry.computeBoundingBox()
     this.geometry.computeBoundingSphere()
     this.geometry.computeTangents()
-
-
-    //if (this.mesh) this.renderManager.removeFromScene(this.mesh)
-
-    // this.mesh = new THREE.Mesh(this.geometry, material)
-
-    // this.mesh.doubleSided = false
-    //this.renderManager.addToScene(this.mesh);
   }
 
   getPos() {

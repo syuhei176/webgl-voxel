@@ -82,16 +82,29 @@ export class WorldManager {
     })
 
     inputManager.set("back", () => {
-      this.player.backward();
+      this.player.startBack();
     })
 
     inputManager.set("right", () => {
-      this.player.right();
+      this.player.startRight();
     })
 
     inputManager.set("left", () => {
-      this.player.left();
+      this.player.startLeft();
     })
+
+    inputManager.set("stopback", () => {
+      this.player.stopBack()
+    })
+
+    inputManager.set("stopright", () => {
+      this.player.stopRight()
+    })
+
+    inputManager.set("stopleft", () => {
+      this.player.stopLeft()
+    })
+
 
     inputManager.set("jump", () => {
       this.player.startJump();

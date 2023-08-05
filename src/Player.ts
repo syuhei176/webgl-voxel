@@ -50,7 +50,7 @@ export class Player {
 
     renderManager.addEnterFrameListener(() => {
 
-      var below = this.worldManager.findObject(this.pos.x, this.pos.y - 1, this.pos.z);
+      const below = this.worldManager.findObject(this.pos.x, this.pos.y - 1, this.pos.z);
 
       if (this.jumpForce > 0) {
         this.pos.y += this.jumpForce
@@ -62,9 +62,9 @@ export class Player {
         }
       }
 
-      //TODO: 下にブロックがなかったら下に落ちる
+      // if there is not a block below, falls down
       if (!below) {
-        this.pos.y -= 0.07;
+        this.pos.y -= 0.08;
 
         this.refreshCameraPosition();
       }
@@ -81,10 +81,7 @@ export class Player {
       if (this.isLeftMode) {
         this.left()
       }
-
-
     })
-
   }
 
 
@@ -216,48 +213,42 @@ export class Player {
 
   changeDirection(mx: number, my: number) {
     var th = ((mx > 0) ? 1 : -1) * Math.abs(mx) * 320;
-    var dx = this.direction.x * Math.cos(th / 180 * Math.PI) - this.direction.z * Math.sin(th / 180 * Math.PI);
-    var dz = this.direction.x * Math.sin(th / 180 * Math.PI) + this.direction.z * Math.cos(th / 180 * Math.PI);
+    const dx = this.direction.x * Math.cos(th / 180 * Math.PI) - this.direction.z * Math.sin(th / 180 * Math.PI);
+    const dz = this.direction.x * Math.sin(th / 180 * Math.PI) + this.direction.z * Math.cos(th / 180 * Math.PI);
+
     this.direction.setX(dx);
     this.direction.setZ(dz);
     this.direction.setY(this.direction.y + my * 2);
     this.direction.normalize();
+
     this.refreshCameraPosition();
-    /*
-    var projector = new THREE.Projector();
-    var ray = projector.pickingRay(new THREE.Vector3(0, 0, -1), camera);
-    var intersects = ray.intersectObjects(renderManager.scene.children);
-    if(intersects.length > 0) {
-        
-    }
-    */
   }
 
   useItem() {
-    var raycaster = new THREE.Raycaster(); // create once
+    const raycaster = new THREE.Raycaster(); // create once
 
     raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera)
 
-    var intersects = raycaster.intersectObjects(this.renderManager.scene.children);
+    const intersects = raycaster.intersectObjects(this.renderManager.scene.children);
 
     if (intersects.length > 0 && intersects[0].face) {
-      var iteminfo = META_ITEMS[this.pockets[this.selectedItem].id]
+      const itemInfo = META_ITEMS[this.pockets[this.selectedItem].id]
 
-      if (iteminfo.destroy_tool) {
+      if (itemInfo.destroy_tool) {
         if (intersects[0].distance < 4) {
           this.worldManager.destroyObject(
             Math.floor(intersects[0].point.x - intersects[0].face.normal.x / 4),
             Math.floor(intersects[0].point.y - intersects[0].face.normal.y / 4),
             Math.floor(intersects[0].point.z - intersects[0].face.normal.z / 4));
         }
-      } else if (iteminfo.settable) {
+      } else if (itemInfo.settable) {
         if (this.items > 0 && intersects[0].distance < 4) {
           this.items--;
           this.worldManager.createObject(
             Math.floor(intersects[0].point.x + intersects[0].face.normal.x / 4),
             Math.floor(intersects[0].point.y + intersects[0].face.normal.y / 4),
             Math.floor(intersects[0].point.z + intersects[0].face.normal.z / 4),
-            iteminfo.boxid);
+            itemInfo.boxid);
         }
       }
     } else {
@@ -267,7 +258,7 @@ export class Player {
 
   selectItem(i: number) {
     this.selectedItem = i;
-    var iteminfo = META_ITEMS[this.pockets[this.selectedItem].id]
-    display2d(iteminfo.name);
+    const itemInfo = META_ITEMS[this.pockets[this.selectedItem].id]
+    display2d(itemInfo.name);
   }
 }
