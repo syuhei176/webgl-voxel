@@ -2,15 +2,22 @@
   "name": "webgl-voxel",
   "version": "0.0.1",
   "description": "",
-  "dependencies": {
+  "scripts": {
+    "start": "parcel serve ./index.html",
+    "build": "parcel build ./index.html --dist-dir ./dist --public-url ./"
   },
   "devDependencies": {
-    "gulp-install": "^0.2.0",
+    "@types/three": "^0.155.0",
     "gulp": "~3.8.7",
-    "gulp-webserver": "*",
     "gulp-connect": "~2.0.6",
-    "gulp-install": "^0.2.0"
+    "gulp-install": "^0.2.0",
+    "gulp-webserver": "*",
+    "parcel": "^2.9.3"
   },
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "three": "^0.155.0",
+    "typescript": "^5.1.6"
+  }
 }
