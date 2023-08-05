@@ -2,9 +2,12 @@ import { RenderManager } from "./RenderManager";
 
 interface Listener {
   forward: () => void
+  stopforward: () => void
   right: () => void
   left: () => void
   back: () => void
+  jump: () => void
+  stopjump: () => void
   selectitem: (e: any) => void
   pointermove: (e: any) => void
   pointerclick: () => void
@@ -24,9 +27,12 @@ export class InputManager {
   constructor() {
     this.listeners = {
       forward: () => { },
+      stopforward: () => { },
       right: () => { },
       left: () => { },
       back: () => { },
+      jump: () => { },
+      stopjump: () => { },
       selectitem: (e: any) => { },
       pointermove: function (e: any) { },
       pointerclick: () => { }
@@ -47,7 +53,9 @@ export class InputManager {
       if (e.code == 'KeyS') {
         this.listeners["back"]();
       }
-
+      if (e.code == 'Space') {
+        this.listeners["jump"]();
+      }
 
       const keyCode = Number(e.code.substring(5))
 
@@ -55,6 +63,16 @@ export class InputManager {
         this.listeners["selectitem"]({ number: keyCode - 49 });
       }
     }, false);
+
+    window.addEventListener("keyup", (e) => {
+      if (e.code == 'KeyW') {
+        this.listeners["stopforward"]();
+      }
+      if (e.code == 'Space') {
+        this.listeners["stopjump"]();
+      }
+    }, false)
+
     window.addEventListener("mousemove", (e) => {
       var movementX = e.movementX ||
         null,

@@ -9,7 +9,7 @@ export class RenderManager {
   scene: Scene
   renderer: WebGLRenderer
   display_queue: Chunk[] = []
-  listeners: any = []
+  listeners: any[] = []
 
   constructor(width: number, height: number) {
     this.width = width
@@ -49,8 +49,6 @@ export class RenderManager {
     var ambient = new THREE.AmbientLight(0x333333);
     scene.add(ambient);
     */
-    var listeners = [];
-    var display_queue = [];
   }
 
   enDisplayQueue(chunk: Chunk) {
@@ -73,6 +71,11 @@ export class RenderManager {
       if (c) {
         c.refresh();
       }
+
+      this.listeners.forEach(listener => {
+        listener()
+      })
+
       //display_queue.length = 0;
       requestAnimationFrame(render);
       if (!c) this.renderer.render(this.scene, this.camera);

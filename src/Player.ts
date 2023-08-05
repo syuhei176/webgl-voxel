@@ -20,6 +20,13 @@ export class Player {
   items: number
   pockets: Pockets[]
 
+  isJumpMode: boolean
+  jumpForce: number
+  isForwardMode: boolean
+  isBackMode: boolean
+  isRightMode: boolean
+  isLeftMode: boolean
+
   constructor(renderManager: RenderManager) {
     this.renderManager = renderManager
     this.camera = renderManager.camera;
@@ -29,28 +36,54 @@ export class Player {
       Math.floor(CHUNLK_LENGTH_Z * WORLD_WIDTH / 2)
     );
     this.direction = new THREE.Vector3(0, 0, -1);
-    this.walkspeed = 0.2;
+    this.walkspeed = 0.18
     this.selectedItem = 0;
     this.items = 2;
     this.pockets = [{
       id: 1,
       num: 5
     }]
+    this.isJumpMode = false
 
     this.refreshCameraPosition();
 
-    setInterval(() => {
+
+    renderManager.addEnterFrameListener(() => {
+
       var below = this.worldManager.findObject(this.pos.x, this.pos.y - 1, this.pos.z);
+
+      if (this.jumpForce > 0) {
+        this.pos.y += this.jumpForce
+
+        this.jumpForce -= 0.02
+
+        if (this.jumpForce < 0) {
+          this.jumpForce = 0
+        }
+      }
+
       //TODO: 下にブロックがなかったら下に落ちる
-      if (below) {
-        this.pos.y += 0.025;
-      } else {
-        this.pos.y -= 0.05;
+      if (!below) {
+        this.pos.y -= 0.07;
+
         this.refreshCameraPosition();
       }
-    }, 1000 / 60);
-    renderManager.addEnterFrameListener(function () {
-    });
+
+      if (this.isForwardMode) {
+        this.forward()
+      }
+      if (this.isBackMode) {
+        this.backward()
+      }
+      if (this.isRightMode) {
+        this.right()
+      }
+      if (this.isLeftMode) {
+        this.left()
+      }
+
+
+    })
 
   }
 
@@ -74,6 +107,38 @@ export class Player {
     this.pos.x = p.x;
     this.pos.y = p.y;
     this.pos.z = p.z;
+  }
+
+  startForward() {
+    this.isForwardMode = true
+  }
+
+  stopForward() {
+    this.isForwardMode = false
+  }
+
+  startBack() {
+    this.isBackMode = true
+  }
+
+  stopBack() {
+    this.isBackMode = false
+  }
+
+  startRight() {
+    this.isRightMode = true
+  }
+
+  stopRight() {
+    this.isRightMode = false
+  }
+
+  startLeft() {
+    this.isLeftMode = true
+  }
+
+  stopLeft() {
+    this.isLeftMode = false
   }
 
   forward() {
@@ -140,7 +205,16 @@ export class Player {
     this.worldManager.refreshActiveChunk();
   }
 
-  changeDirection(mx, my) {
+  startJump() {
+    this.isJumpMode = true
+    this.jumpForce = 0.6
+  }
+  stopJump() {
+    this.isJumpMode = false
+    this.jumpForce = 0
+  }
+
+  changeDirection(mx: number, my: number) {
     var th = ((mx > 0) ? 1 : -1) * Math.abs(mx) * 320;
     var dx = this.direction.x * Math.cos(th / 180 * Math.PI) - this.direction.z * Math.sin(th / 180 * Math.PI);
     var dz = this.direction.x * Math.sin(th / 180 * Math.PI) + this.direction.z * Math.cos(th / 180 * Math.PI);

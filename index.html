@@ -14,33 +14,25 @@
             color: #333;
         }
     </style>
-    <script src="libs/three.min.js"></script>
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
     <script type="module" src="src/index.ts"></script>
-    <script src="terrain-generator.js"></script>
     <script>
-        $(function () {
-            document.body.onclick = function () {
-                if (this.webkitRequestFullScreen) {
-                    this.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
-                }
-                else if (this.mozRequestFullScreen) {
-                    this.mozRequestFullScreen();
-                }
-                else if (this.msRequestFullscreen) {
-                    this.msRequestFullscreen();
-                }
-                else {
-                    alert("not found")
-                }
-                this.requestPointerLock = this.requestPointerLock || this.mozRequestPointerLock || this.webkitRequestPointerLock;
-                this.requestPointerLock();
-            };
-
-            //var metaBox = createMetaBox();
-            //var box = metaBox.getInstance();
-            //worldManager.add(box);
-        })
+        document.body.onclick = function () {
+            if (this.webkitRequestFullScreen) {
+                this.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+            }
+            else if (this.mozRequestFullScreen) {
+                this.mozRequestFullScreen();
+            }
+            else if (this.msRequestFullscreen) {
+                this.msRequestFullscreen();
+            }
+            else {
+                alert("not found")
+            }
+            this.requestPointerLock = this.requestPointerLock || this.mozRequestPointerLock || this.webkitRequestPointerLock;
+            this.requestPointerLock();
+        }
     </script>
     <!-- 
     <div style="position:absolute;top:250px;left:320px;">＋</div>

@@ -75,7 +75,10 @@ export class WorldManager {
     var inputManager = new InputManager();
 
     inputManager.set("forward", () => {
-      this.player.forward();
+      this.player.startForward();
+    })
+    inputManager.set("stopforward", () => {
+      this.player.stopForward();
     })
 
     inputManager.set("back", () => {
@@ -88,6 +91,14 @@ export class WorldManager {
 
     inputManager.set("left", () => {
       this.player.left();
+    })
+
+    inputManager.set("jump", () => {
+      this.player.startJump();
+    })
+
+    inputManager.set("stopjump", () => {
+      this.player.stopJump();
     })
 
     inputManager.set("pointermove", (e) => {

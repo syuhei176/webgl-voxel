@@ -36,6 +36,8 @@ export class Chunk {
 
   loader: THREE.TextureLoader
 
+  texture: THREE.Texture
+
   constructor(x: number, z: number, renderManager: RenderManager) {
     this.pos = {
       x,
@@ -44,7 +46,6 @@ export class Chunk {
     this.renderManager = renderManager
     this.loader = new THREE.TextureLoader()
 
-    var mesh = null;
     this.meshes = []
     for (var i = 0; i < CHUNLK_LENGTH_X; i++) {
       this.meshes[i] = [];
@@ -52,11 +53,16 @@ export class Chunk {
         this.meshes[i][j] = null;
       }
     }
-    function getMesh(x, z) {
-      if (x < 0 || z < 0 || x >= CHUNLK_LENGTH_X - 1 || z >= CHUNLK_LENGTH_Z - 1) return null;
-      return this.meshes[x][z];
-    }
-    var geometry = null;
+
+    this.texture = this.loader.load('./texture.png')
+    this.geometry = new THREE.BufferGeometry();
+
+    const material = new THREE.MeshBasicMaterial({
+      map: this.texture
+    })
+    this.mesh = new THREE.Mesh(this.geometry, material)
+
+    this.renderManager.addToScene(this.mesh);
   }
 
   getMesherResult() {
@@ -84,7 +90,7 @@ export class Chunk {
             var q3 = add_vertex([x + 1, y + 1, z + 1]);
             var q4 = add_vertex([x + 1, y + 1, z]);
             result.faces.push([q1, q2, q3, q4]);
-            result.uvs.push(get_uv(this.boxes[x + 1][y][z].type));
+            result.uvs.push(get_uv(this.boxes[x + 1][y][z].type || 0));
             result.colors.push(this.boxes[x][y][z].brightness);
           } else if (x == this.x_size - 1) {
             var chunk1 = this.worldManager.getChunk(this.pos.x + 1, this.pos.z);
@@ -107,7 +113,7 @@ export class Chunk {
             var q3 = add_vertex([x, y + 1, z + 1]);
             var q4 = add_vertex([x, y, z + 1]);
             result.faces.push([q1, q2, q3, q4]);
-            result.uvs.push(get_uv(this.boxes[x - 1][y][z].type));
+            result.uvs.push(get_uv(this.boxes[x - 1][y][z].type || 0));
             result.colors.push(this.boxes[x][y][z].brightness);
           } else if (x == 0) {
             var chunk1 = this.worldManager.getChunk(this.pos.x - 1, this.pos.z);
@@ -130,7 +136,7 @@ export class Chunk {
             var q3 = add_vertex([x + 1, y + 1, z + 1]);
             var q4 = add_vertex([x, y + 1, z + 1]);
             result.faces.push([q1, q2, q3, q4]);
-            result.uvs.push(get_uv(this.boxes[x][y + 1][z].type));
+            result.uvs.push(get_uv(this.boxes[x][y + 1][z].type || 0));
             result.colors.push(this.boxes[x][y][z].brightness);
           }
           if (y > 0 && this.boxes[x][y - 1][z].type) {
@@ -139,7 +145,7 @@ export class Chunk {
             var q3 = add_vertex([x + 1, y, z + 1]);
             var q4 = add_vertex([x + 1, y, z]);
             result.faces.push([q1, q2, q3, q4]);
-            result.uvs.push(get_uv(this.boxes[x][y - 1][z].type));
+            result.uvs.push(get_uv(this.boxes[x][y - 1][z].type || 0));
             result.colors.push(this.boxes[x][y][z].brightness);
           }
           if (z < this.z_size - 1 && this.boxes[x][y][z + 1].type) {
@@ -148,7 +154,7 @@ export class Chunk {
             var q3 = add_vertex([x + 1, y + 1, z + 1]);
             var q4 = add_vertex([x + 1, y, z + 1]);
             result.faces.push([q1, q2, q3, q4]);
-            result.uvs.push(get_uv(this.boxes[x][y][z + 1].type));
+            result.uvs.push(get_uv(this.boxes[x][y][z + 1].type || 0));
             result.colors.push(this.boxes[x][y][z].brightness);
           } else if (z == this.z_size - 1) {
             var chunk1 = this.worldManager.getChunk(this.pos.x, this.pos.z + 1);
@@ -171,7 +177,7 @@ export class Chunk {
             var q3 = add_vertex([x + 1, y + 1, z]);
             var q4 = add_vertex([x, y + 1, z]);
             result.faces.push([q1, q2, q3, q4]);
-            result.uvs.push(get_uv(this.boxes[x][y][z - 1].type));
+            result.uvs.push(get_uv(this.boxes[x][y][z - 1].type || 0));
             result.colors.push(this.boxes[x][y][z].brightness);
           } else if (z == 0) {
             var chunk1 = this.worldManager.getChunk(this.pos.x, this.pos.z - 1);
@@ -210,7 +216,7 @@ export class Chunk {
       return vertex_map[v.join("-")];
     }
 
-    function get_uv(index) {
+    function get_uv(index: number) {
       var u1 = new THREE.Vector2(index * TEXTURE_TIP_RATIO, 0.9);
       var u2 = new THREE.Vector2(index * TEXTURE_TIP_RATIO, 1);
       var u3 = new THREE.Vector2((index + 1) * TEXTURE_TIP_RATIO, 1);
@@ -266,7 +272,6 @@ export class Chunk {
   }
 
   refresh() {
-    this.geometry = new THREE.BufferGeometry();
 
     var result = this.getMesherResult()
 
@@ -292,9 +297,8 @@ export class Chunk {
         uvArray.push(result.uvs[i][j].x)
         uvArray.push(result.uvs[i][j].y)
       }
-      // uvAttribute.setXY(i, result.uvs[i][0].x, result.uvs[i][0].y);
 
-      uvArray
+      // uvAttribute.setXY(i, result.uvs[i][0].x, result.uvs[i][0].y);
 
       var q = result.faces[i];
       //var f = new THREE.Face4(q[0], q[1], q[2], q[3]);
@@ -302,19 +306,18 @@ export class Chunk {
       //f.vertexColors = [f.color, f.color, f.color, f.color];
 
       faces.push(q[0])
-      faces.push(q[2])
-      faces.push(q[3])
-
-      faces.push(q[0])
       faces.push(q[1])
       faces.push(q[2])
 
+      faces.push(q[0])
+      faces.push(q[2])
+      faces.push(q[3])
     }
 
     this.geometry.setFromPoints(vertices)
     this.geometry.setIndex(faces)
-    this.geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvArray), 2));
 
+    this.geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvArray), 4));
 
     const material = new THREE.MeshBasicMaterial({
       /*
@@ -325,8 +328,9 @@ export class Chunk {
       shininess: 50,
       metal: true,
       */
-      map: this.loader.load('./texture.png')
-    });
+      map: this.texture
+    })
+
     /*
     var material = new THREE.MeshBasicMaterial({
         color: 0x111111, ambient: 0xffffff,
@@ -349,12 +353,12 @@ export class Chunk {
     this.geometry.computeTangents()
 
 
-    if (this.mesh) this.renderManager.removeFromScene(this.mesh)
+    //if (this.mesh) this.renderManager.removeFromScene(this.mesh)
 
-    this.mesh = new THREE.Mesh(this.geometry, material)
+    // this.mesh = new THREE.Mesh(this.geometry, material)
 
     // this.mesh.doubleSided = false
-    this.renderManager.addToScene(this.mesh);
+    //this.renderManager.addToScene(this.mesh);
   }
 
   getPos() {
@@ -614,7 +618,7 @@ export class Chunk {
       }
     }
     function search_soil(x, z) {
-      for (var y = y_size - 1; y >= 0; y--) {
+      for (var y = this.y_size - 1; y >= 0; y--) {
         if (this.boxes[x][y][z] == 2) {
           //soil
           if (Math.random() * 10 < 3 && self.get_numofbox(x, y, z, 3, 2) < 1) {
