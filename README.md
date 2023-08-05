@@ -1,9 +1,5 @@
 WebGL Voxel
 ==========
 
-DEMO http://syuhei.jpn.org/world/webgl.html
+DEMO http://syuhei176.github.io/webgl-voxel/
 
-
-    node server.js
-
-access http://localhost:8888
