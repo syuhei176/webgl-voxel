@@ -268,8 +268,7 @@ export class Chunk {
   refresh() {
     this.geometry = new THREE.BufferGeometry();
 
-    var result = this.getMesherResult();
-    console.log(result)
+    var result = this.getMesherResult()
 
     // this.geometry.vertices.length = 0
     // this.geometry.faces.length = 0

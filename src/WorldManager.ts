@@ -70,32 +70,38 @@ export class WorldManager {
       }
     }, 1000);
     this.current_chunk = this.chunk[0][0];
-    var player = new Player(this.renderManager);
+
+    this.player = new Player(this.renderManager);
     var inputManager = new InputManager();
-    inputManager.set("forward", function () {
-      player.forward();
-    });
-    inputManager.set("back", function () {
-      player.backward();
-    });
-    inputManager.set("right", function () {
-      player.right();
-    });
-    inputManager.set("left", function () {
-      player.left();
-    });
-    inputManager.set("pointermove", function (e) {
-      player.changeDirection(e.mx, e.my);
-    });
-    inputManager.set("pointerclick", function (e) {
-      player.useitem();
-    });
-    inputManager.set("selectitem", function (e) {
-      player.selectItem(e.number);
-      //アイテムナンバー表示
+
+    inputManager.set("forward", () => {
+      this.player.forward();
     })
 
-    this.player = player
+    inputManager.set("back", () => {
+      this.player.backward();
+    })
+
+    inputManager.set("right", () => {
+      this.player.right();
+    })
+
+    inputManager.set("left", () => {
+      this.player.left();
+    })
+
+    inputManager.set("pointermove", (e) => {
+      this.player.changeDirection(e.mx, e.my);
+    })
+
+    inputManager.set("pointerclick", (e) => {
+      this.player.useItem()
+    })
+
+    inputManager.set("selectitem", (e) => {
+      this.player.selectItem(e.number);
+      //アイテムナンバー表示
+    })
   }
 
   getChunk(x: number, z: number) {

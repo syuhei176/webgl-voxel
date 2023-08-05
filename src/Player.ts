@@ -159,12 +159,16 @@ export class Player {
     */
   }
 
-  useitem() {
+  useItem() {
     var raycaster = new THREE.Raycaster(); // create once
+
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera)
+
     var intersects = raycaster.intersectObjects(this.renderManager.scene.children);
 
     if (intersects.length > 0 && intersects[0].face) {
-      var iteminfo = getItemInfo(this.pockets[this.selectedItem].id);
+      var iteminfo = META_ITEMS[this.pockets[this.selectedItem].id]
+
       if (iteminfo.destroy_tool) {
         if (intersects[0].distance < 4) {
           this.worldManager.destroyObject(
