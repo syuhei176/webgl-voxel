@@ -13,6 +13,15 @@
             font-weight: 500;
             color: #333;
         }
+
+        .info {
+            padding: 2px;
+            font-size: 18px;
+            position: absolute;
+            top: 100px;
+            right: 60px;
+            background-color: #f0f0f070;
+        }
     </style>
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
     <script type="module" src="src/index.ts"></script>
@@ -37,8 +46,15 @@
     <!-- 
     <div style="position:absolute;top:250px;left:320px;">＋</div>
      -->
-    <div style="position:absolute;top:100px;left:650px;">
-        <div>操作<br>W,S：前進、後進<br>マウス：視点移動<br>クリック：ブロックを消す</div>
+    <div class="info">
+        <div>
+            Control<br>
+            W,S: Move forward, Move backward<br>
+            A,D: Move left, Move right<br>
+            Space: Jump<br>
+            Mouse: Look control<br>
+            Click: Destroy a block
+        </div>
         <div style="font-size:5px;">
             <div id="2d"></div>
             <div id="time"></div>
