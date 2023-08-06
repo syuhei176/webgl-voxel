@@ -69,7 +69,7 @@ export class Chunk {
     var result: {
       vertices: number[][],
       faces: number[][],
-      uvs: THREE.Vector2[][],
+      uvs: THREE.Vector2[],
       colors: number[]
     } = {
       vertices: [],
@@ -85,111 +85,131 @@ export class Chunk {
       for (var y = this.y_size - 1; y >= 0; y--) {
         if (this.boxes[x][y][z].type == null) {
           if (x < this.x_size - 1 && this.boxes[x + 1][y][z].type) {
-            var q1 = add_vertex([x + 1, y, z]);
-            var q2 = add_vertex([x + 1, y, z + 1]);
-            var q3 = add_vertex([x + 1, y + 1, z + 1]);
-            var q4 = add_vertex([x + 1, y + 1, z]);
+            const uvs = get_uv(this.boxes[x + 1][y][z].type || 0)
+
+            var q1 = add_vertex([x + 1, y, z], uvs[0]);
+            var q2 = add_vertex([x + 1, y, z + 1], uvs[1]);
+            var q3 = add_vertex([x + 1, y + 1, z + 1], uvs[2]);
+            var q4 = add_vertex([x + 1, y + 1, z], uvs[3]);
+
             result.faces.push([q1, q2, q3, q4]);
-            result.uvs.push(get_uv(this.boxes[x + 1][y][z].type || 0));
             result.colors.push(this.boxes[x][y][z].brightness);
           } else if (x == this.x_size - 1) {
             var chunk1 = this.worldManager.getChunk(this.pos.x + 1, this.pos.z);
             if (chunk1) {
               var box1 = chunk1.findObjectLocal(0, y, z);
               if (box1 && box1.type) {
-                var q1 = add_vertex([x + 1, y, z]);
-                var q2 = add_vertex([x + 1, y, z + 1]);
-                var q3 = add_vertex([x + 1, y + 1, z + 1]);
-                var q4 = add_vertex([x + 1, y + 1, z]);
+                const uvs = get_uv(box1.type)
+
+                var q1 = add_vertex([x + 1, y, z], uvs[0]);
+                var q2 = add_vertex([x + 1, y, z + 1], uvs[1]);
+                var q3 = add_vertex([x + 1, y + 1, z + 1], uvs[2]);
+                var q4 = add_vertex([x + 1, y + 1, z], uvs[3]);
+
                 result.faces.push([q1, q2, q3, q4]);
-                result.uvs.push(get_uv(box1.type));
                 result.colors.push(this.boxes[x][y][z].brightness);
               }
             }
           }
           if (x > 0 && this.boxes[x - 1][y][z].type) {
-            var q1 = add_vertex([x, y, z]);
-            var q2 = add_vertex([x, y + 1, z]);
-            var q3 = add_vertex([x, y + 1, z + 1]);
-            var q4 = add_vertex([x, y, z + 1]);
+            const uvs = get_uv(this.boxes[x - 1][y][z].type || 0)
+
+            var q1 = add_vertex([x, y, z], uvs[0]);
+            var q2 = add_vertex([x, y + 1, z], uvs[1]);
+            var q3 = add_vertex([x, y + 1, z + 1], uvs[2]);
+            var q4 = add_vertex([x, y, z + 1], uvs[3]);
+
             result.faces.push([q1, q2, q3, q4]);
-            result.uvs.push(get_uv(this.boxes[x - 1][y][z].type || 0));
             result.colors.push(this.boxes[x][y][z].brightness);
           } else if (x == 0) {
             var chunk1 = this.worldManager.getChunk(this.pos.x - 1, this.pos.z);
             if (chunk1) {
               var box1 = chunk1.findObjectLocal(CHUNLK_LENGTH_X - 1, y, z);
               if (box1 && box1.type) {
-                var q1 = add_vertex([x, y, z]);
-                var q2 = add_vertex([x, y + 1, z]);
-                var q3 = add_vertex([x, y + 1, z + 1]);
-                var q4 = add_vertex([x, y, z + 1]);
+                const uvs = get_uv(box1.type)
+
+                var q1 = add_vertex([x, y, z], uvs[0]);
+                var q2 = add_vertex([x, y + 1, z], uvs[1]);
+                var q3 = add_vertex([x, y + 1, z + 1], uvs[2]);
+                var q4 = add_vertex([x, y, z + 1], uvs[3]);
+
                 result.faces.push([q1, q2, q3, q4]);
-                result.uvs.push(get_uv(box1.type));
                 result.colors.push(this.boxes[x][y][z].brightness);
               }
             }
           }
           if (y < this.y_size - 1 && this.boxes[x][y + 1][z].type) {
-            var q1 = add_vertex([x, y + 1, z]);
-            var q2 = add_vertex([x + 1, y + 1, z]);
-            var q3 = add_vertex([x + 1, y + 1, z + 1]);
-            var q4 = add_vertex([x, y + 1, z + 1]);
+            const uvs = get_uv(this.boxes[x][y + 1][z].type || 0)
+
+            var q1 = add_vertex([x, y + 1, z], uvs[0]);
+            var q2 = add_vertex([x + 1, y + 1, z], uvs[1]);
+            var q3 = add_vertex([x + 1, y + 1, z + 1], uvs[2]);
+            var q4 = add_vertex([x, y + 1, z + 1], uvs[3]);
+
             result.faces.push([q1, q2, q3, q4]);
-            result.uvs.push(get_uv(this.boxes[x][y + 1][z].type || 0));
             result.colors.push(this.boxes[x][y][z].brightness);
           }
           if (y > 0 && this.boxes[x][y - 1][z].type) {
-            var q1 = add_vertex([x, y, z]);
-            var q2 = add_vertex([x, y, z + 1]);
-            var q3 = add_vertex([x + 1, y, z + 1]);
-            var q4 = add_vertex([x + 1, y, z]);
+            const uvs = get_uv(this.boxes[x][y - 1][z].type || 0)
+
+            var q1 = add_vertex([x, y, z], uvs[0]);
+            var q2 = add_vertex([x, y, z + 1], uvs[1]);
+            var q3 = add_vertex([x + 1, y, z + 1], uvs[2]);
+            var q4 = add_vertex([x + 1, y, z], uvs[3]);
+
             result.faces.push([q1, q2, q3, q4]);
-            result.uvs.push(get_uv(this.boxes[x][y - 1][z].type || 0));
             result.colors.push(this.boxes[x][y][z].brightness);
           }
           if (z < this.z_size - 1 && this.boxes[x][y][z + 1].type) {
-            var q1 = add_vertex([x, y, z + 1]);
-            var q2 = add_vertex([x, y + 1, z + 1]);
-            var q3 = add_vertex([x + 1, y + 1, z + 1]);
-            var q4 = add_vertex([x + 1, y, z + 1]);
+            const uvs = get_uv(this.boxes[x][y][z + 1].type || 0)
+
+            var q1 = add_vertex([x, y, z + 1], uvs[0]);
+            var q2 = add_vertex([x, y + 1, z + 1], uvs[1]);
+            var q3 = add_vertex([x + 1, y + 1, z + 1], uvs[2]);
+            var q4 = add_vertex([x + 1, y, z + 1], uvs[3]);
+
             result.faces.push([q1, q2, q3, q4]);
-            result.uvs.push(get_uv(this.boxes[x][y][z + 1].type || 0));
             result.colors.push(this.boxes[x][y][z].brightness);
           } else if (z == this.z_size - 1) {
             var chunk1 = this.worldManager.getChunk(this.pos.x, this.pos.z + 1);
             if (chunk1) {
               var box1 = chunk1.findObjectLocal(x, y, 0);
               if (box1 && box1.type) {
-                var q1 = add_vertex([x, y, z + 1]);
-                var q2 = add_vertex([x, y + 1, z + 1]);
-                var q3 = add_vertex([x + 1, y + 1, z + 1]);
-                var q4 = add_vertex([x + 1, y, z + 1]);
+                const uvs = get_uv(box1.type)
+
+                var q1 = add_vertex([x, y, z + 1], uvs[0]);
+                var q2 = add_vertex([x, y + 1, z + 1], uvs[1]);
+                var q3 = add_vertex([x + 1, y + 1, z + 1], uvs[2]);
+                var q4 = add_vertex([x + 1, y, z + 1], uvs[3]);
+
                 result.faces.push([q1, q2, q3, q4]);
-                result.uvs.push(get_uv(box1.type));
                 result.colors.push(this.boxes[x][y][z].brightness);
               }
             }
           }
           if (z > 0 && this.boxes[x][y][z - 1].type) {
-            var q1 = add_vertex([x, y, z]);
-            var q2 = add_vertex([x + 1, y, z]);
-            var q3 = add_vertex([x + 1, y + 1, z]);
-            var q4 = add_vertex([x, y + 1, z]);
+            const uvs = get_uv(this.boxes[x][y][z - 1].type || 0)
+
+            var q1 = add_vertex([x, y, z], uvs[0]);
+            var q2 = add_vertex([x + 1, y, z], uvs[1]);
+            var q3 = add_vertex([x + 1, y + 1, z], uvs[2]);
+            var q4 = add_vertex([x, y + 1, z], uvs[3]);
+
             result.faces.push([q1, q2, q3, q4]);
-            result.uvs.push(get_uv(this.boxes[x][y][z - 1].type || 0));
             result.colors.push(this.boxes[x][y][z].brightness);
           } else if (z == 0) {
             var chunk1 = this.worldManager.getChunk(this.pos.x, this.pos.z - 1);
             if (chunk1) {
               var box1 = chunk1.findObjectLocal(x, y, CHUNLK_LENGTH_Z - 1);
               if (box1 && box1.type) {
-                var q1 = add_vertex([x, y, z]);
-                var q2 = add_vertex([x + 1, y, z]);
-                var q3 = add_vertex([x + 1, y + 1, z]);
-                var q4 = add_vertex([x, y + 1, z]);
+                const uvs = get_uv(box1.type)
+
+                var q1 = add_vertex([x, y, z], uvs[0]);
+                var q2 = add_vertex([x + 1, y, z], uvs[1]);
+                var q3 = add_vertex([x + 1, y + 1, z], uvs[2]);
+                var q4 = add_vertex([x, y + 1, z], uvs[3]);
+
                 result.faces.push([q1, q2, q3, q4]);
-                result.uvs.push(get_uv(box1.type));
                 result.colors.push(this.boxes[x][y][z].brightness);
               }
             }
@@ -208,10 +228,12 @@ export class Chunk {
 
     return result;
 
-    function add_vertex(v: number[]) {
+    function add_vertex(v: number[], uv: THREE.Vector2) {
       if (!vertex_map[v.join("-")]) {
         vertex_map[v.join("-")] = result.vertices.length;
         result.vertices.push(v);
+
+        result.uvs.push(uv);
       }
       return vertex_map[v.join("-")];
     }
@@ -275,37 +297,33 @@ export class Chunk {
   refresh() {
     const result = this.getMeshResult()
 
-    // this.geometry.vertices.length = 0
-    // this.geometry.faces.length = 0
-
     let vertices: THREE.Vector3[] = []
     let faces: number[] = []
+    const uvArray: number[] = []
 
 
     for (var i = 0; i < result.vertices.length; i++) {
       vertices.push(new THREE.Vector3(
         this.pos.x * this.x_size + result.vertices[i][0],
         result.vertices[i][1],
-        this.pos.z * this.z_size + result.vertices[i][2]));
+        this.pos.z * this.z_size + result.vertices[i][2]))
+
+      uvArray.push(result.uvs[i].x)
+      uvArray.push(result.uvs[i].y)
     }
 
-    const uvArray: number[] = []
 
     for (var i = 0; i < result.faces.length; i++) {
       //this.geometry.faceVertexUvs[0].push(result.uvs[i]);
-      uvArray.push(result.uvs[i][0].x)
-      uvArray.push(result.uvs[i][0].y)
+      /*
       uvArray.push(result.uvs[i][1].x)
       uvArray.push(result.uvs[i][1].y)
       uvArray.push(result.uvs[i][2].x)
       uvArray.push(result.uvs[i][2].y)
-
-      uvArray.push(result.uvs[i][0].x)
-      uvArray.push(result.uvs[i][0].y)
-      uvArray.push(result.uvs[i][2].x)
-      uvArray.push(result.uvs[i][2].y)
       uvArray.push(result.uvs[i][3].x)
       uvArray.push(result.uvs[i][3].y)
+      */
+
 
 
       // uvAttribute.setXY(i, result.uvs[i][0].x, result.uvs[i][0].y);
@@ -325,9 +343,8 @@ export class Chunk {
     }
 
     this.geometry.setFromPoints(vertices)
+    this.geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvArray), 2, true));
     this.geometry.setIndex(faces)
-
-    this.geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvArray), 2));
 
     this.geometry.attributes.position.needsUpdate = true;
 
