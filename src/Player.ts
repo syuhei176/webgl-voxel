@@ -15,12 +15,11 @@ export class Player {
   camera: THREE.Camera
   pos: THREE.Vector3
   direction: THREE.Vector3
-  walkspeed: number
+  walkSpeed: number
   selectedItem: number
   items: number
   pockets: Pockets[]
 
-  isJumpMode: boolean
   jumpForce: number
   isForwardMode: boolean
   isBackMode: boolean
@@ -36,14 +35,13 @@ export class Player {
       Math.floor(CHUNLK_LENGTH_Z * WORLD_WIDTH / 2)
     );
     this.direction = new THREE.Vector3(0, 0, -1);
-    this.walkspeed = 0.18
+    this.walkSpeed = 0.18
     this.selectedItem = 0;
     this.items = 2;
     this.pockets = [{
       id: 1,
       num: 5
     }]
-    this.isJumpMode = false
 
     this.refreshCameraPosition();
 
@@ -139,19 +137,21 @@ export class Player {
   }
 
   forward() {
-    this.pos.x += this.direction.x * this.walkspeed;
-    this.pos.z += this.direction.z * this.walkspeed;
+    this.pos.x += this.direction.x * this.walkSpeed;
+    this.pos.z += this.direction.z * this.walkSpeed;
     if (this.pos.x < 0.5) this.pos.x = 0.5;
     if (this.pos.z < 0.5) this.pos.z = 0.5;
-    //もし壁に当たったら、元に戻す
-    var coll = this.worldManager.findObject(this.pos.x, this.pos.y, this.pos.z);
+
+    // If the player hit a wall, put the position back up.
+    const coll = this.worldManager.findObject(this.pos.x, this.pos.y, this.pos.z);
     if (coll) {
-      this.pos.x -= this.direction.x * this.walkspeed;
-      this.pos.z -= this.direction.z * this.walkspeed;
+      this.pos.x -= this.direction.x * this.walkSpeed;
+      this.pos.z -= this.direction.z * this.walkSpeed;
     }
 
     this.refreshCameraPosition();
-    var item = this.worldManager.findItemByPos(this.pos.x, this.pos.y, this.pos.z);
+
+    const item = this.worldManager.findItemByPos(this.pos.x, this.pos.y, this.pos.z);
     if (item) {
       this.worldManager.remove(item);
       this.items++;
@@ -161,58 +161,61 @@ export class Player {
   }
 
   backward() {
-    this.pos.x += this.direction.x * -this.walkspeed;
-    this.pos.z += this.direction.z * -this.walkspeed;
-    //もし壁に当たったら、元に戻す
-    var coll = this.worldManager.findObject(this.pos.x, this.pos.y, this.pos.z);
+    this.pos.x += this.direction.x * -this.walkSpeed;
+    this.pos.z += this.direction.z * -this.walkSpeed;
+
+    // If the player hit a wall, put the position back up.
+    const coll = this.worldManager.findObject(this.pos.x, this.pos.y, this.pos.z);
     if (coll) {
-      this.pos.x -= this.direction.x * -this.walkspeed;
-      this.pos.z -= this.direction.z * -this.walkspeed;
+      this.pos.x -= this.direction.x * -this.walkSpeed;
+      this.pos.z -= this.direction.z * -this.walkSpeed;
     }
     this.refreshCameraPosition();
     this.worldManager.refreshActiveChunk();
   }
 
   right() {
-    this.pos.x += -this.direction.z * this.walkspeed;
-    this.pos.z += this.direction.x * this.walkspeed;
-    //もし壁に当たったら、元に戻す
-    var coll = this.worldManager.findObject(
+    this.pos.x += -this.direction.z * this.walkSpeed;
+    this.pos.z += this.direction.x * this.walkSpeed;
+
+    // If the player hit a wall, put the position back up.
+    const coll = this.worldManager.findObject(
       this.pos.x,
       this.pos.y,
       this.pos.z);
     if (coll) {
-      this.pos.x += -this.direction.z * -this.walkspeed;
-      this.pos.z += this.direction.x * -this.walkspeed;
+      this.pos.x += -this.direction.z * -this.walkSpeed;
+      this.pos.z += this.direction.x * -this.walkSpeed;
     }
     this.refreshCameraPosition();
     this.worldManager.refreshActiveChunk();
   }
 
   left() {
-    this.pos.x += this.direction.z * this.walkspeed;
-    this.pos.z += -this.direction.x * this.walkspeed;
-    //もし壁に当たったら、元に戻す
-    var coll = this.worldManager.findObject(this.pos.x, this.pos.y, this.pos.z);
+    this.pos.x += this.direction.z * this.walkSpeed;
+    this.pos.z += -this.direction.x * this.walkSpeed;
+
+    // If the player hit a wall, put the position back up.
+    const coll = this.worldManager.findObject(this.pos.x, this.pos.y, this.pos.z);
     if (coll) {
-      this.pos.x += this.direction.z * -this.walkspeed;
-      this.pos.z += -this.direction.x * -this.walkspeed;
+      this.pos.x += this.direction.z * -this.walkSpeed;
+      this.pos.z += -this.direction.x * -this.walkSpeed;
     }
     this.refreshCameraPosition();
     this.worldManager.refreshActiveChunk();
   }
 
   startJump() {
-    this.isJumpMode = true
-    this.jumpForce = 0.6
+    if (this.jumpForce <= 0) {
+      this.jumpForce = 0.6
+    }
   }
   stopJump() {
-    this.isJumpMode = false
     this.jumpForce = 0
   }
 
   changeDirection(mx: number, my: number) {
-    var th = ((mx > 0) ? 1 : -1) * Math.abs(mx) * 320;
+    const th = ((mx > 0) ? 1 : -1) * Math.abs(mx) * 320;
     const dx = this.direction.x * Math.cos(th / 180 * Math.PI) - this.direction.z * Math.sin(th / 180 * Math.PI);
     const dz = this.direction.x * Math.sin(th / 180 * Math.PI) + this.direction.z * Math.cos(th / 180 * Math.PI);
 

@@ -271,7 +271,7 @@ export class Chunk {
         for (var y = 0; y < this.y_size; y++) {
           if (hpoint > y) {
             var r = Math.random() * 10;
-            if (this.get_numofbox(x, y, z, 5, 1)) {
+            if (this.getNumOfBox(x, y, z, 5, 1)) {
               if (r < 3) this.boxes[x][y][z].type = 5;
               else this.boxes[x][y][z].type = 2;
             } else {
@@ -297,8 +297,8 @@ export class Chunk {
   refresh() {
     const result = this.getMeshResult()
 
-    let vertices: THREE.Vector3[] = []
-    let faces: number[] = []
+    const vertices: THREE.Vector3[] = []
+    const faces: number[] = []
     const uvArray: number[] = []
 
 
@@ -314,24 +314,7 @@ export class Chunk {
 
 
     for (var i = 0; i < result.faces.length; i++) {
-      //this.geometry.faceVertexUvs[0].push(result.uvs[i]);
-      /*
-      uvArray.push(result.uvs[i][1].x)
-      uvArray.push(result.uvs[i][1].y)
-      uvArray.push(result.uvs[i][2].x)
-      uvArray.push(result.uvs[i][2].y)
-      uvArray.push(result.uvs[i][3].x)
-      uvArray.push(result.uvs[i][3].y)
-      */
-
-
-
-      // uvAttribute.setXY(i, result.uvs[i][0].x, result.uvs[i][0].y);
-
       const q = result.faces[i];
-      //var f = new THREE.Face4(q[0], q[1], q[2], q[3]);
-      //f.color = new THREE.Color(result.colors[i]);
-      //f.vertexColors = [f.color, f.color, f.color, f.color];
 
       faces.push(q[0])
       faces.push(q[1])
@@ -578,7 +561,7 @@ export class Chunk {
 
   }
 
-  get_numofbox(x, y, z, type, range) {
+  getNumOfBox(x, y, z, type, range) {
     var num = 0;
     var sx = x - range;
     var sy = y - range;
@@ -614,7 +597,7 @@ export class Chunk {
       for (var y = this.y_size - 1; y >= 0; y--) {
         if (this.boxes[x][y][z] == 2) {
           //soil
-          if (Math.random() * 10 < 3 && self.get_numofbox(x, y, z, 3, 2) < 1) {
+          if (Math.random() * 10 < 3 && self.getNumOfBox(x, y, z, 3, 2) < 1) {
             this.boxes[x][y + 1][z] = 3;
             self.refresh();
           } else {

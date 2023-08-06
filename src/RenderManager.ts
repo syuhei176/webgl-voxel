@@ -15,24 +15,27 @@ export class RenderManager {
     this.width = width
     this.height = height
 
-    //レンダラーの作成
+    // Creates WebGL renderer
     this.renderer = new WebGLRenderer({ antialias: true });
     // this.renderer.setDepthTest(true);
     this.renderer.setSize(width, height);
     // this.renderer.setClearColorHex(0xffffff, 1);
     this.renderer.clear();
     document.body.appendChild(this.renderer.domElement);
-    //シーンの作成
+
+    // Creates a scene
     this.scene = new Scene();
     this.scene.fog = new THREE.Fog(0xffffff, 1, CHUNLK_LENGTH_X * 1.2);
-    //カメラの作成
+
+    // Created a camera
     this.camera = new THREE.PerspectiveCamera(90, width / height);
     this.camera.translateX(0)
     this.camera.translateY(0)
     this.camera.translateZ(10)
     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
     this.scene.add(this.camera);
-    //ライトの作成
+
+    // Created a light
     var light = new THREE.DirectionalLight(0xcccccc, 1);
     light.translateX(0.577)
     light.translateY(0.577)
@@ -87,9 +90,4 @@ export class RenderManager {
   addEnterFrameListener(l) {
     this.listeners.push(l);
   }
-
-  blight(i: number) {
-    this.renderer.setClearColorHex(i, 1);
-  }
-
 }
