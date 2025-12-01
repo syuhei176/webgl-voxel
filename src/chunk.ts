@@ -225,20 +225,20 @@ export class Chunk {
     return result;
 
     function add_vertex(v: number[], uv: THREE.Vector2) {
-      if (!vertex_map[v.join("-")]) {
-        vertex_map[v.join("-")] = result.vertices.length;
+      const key = v.join("-") + "-" + uv.x.toFixed(4) + "-" + uv.y.toFixed(4);
+      if (!vertex_map[key]) {
+        vertex_map[key] = result.vertices.length;
         result.vertices.push(v);
-
         result.uvs.push(uv);
       }
-      return vertex_map[v.join("-")];
+      return vertex_map[key];
     }
 
     function get_uv(index: number) {
-      const u1 = new THREE.Vector2(index * TEXTURE_TIP_RATIO, 0.9);
-      const u2 = new THREE.Vector2(index * TEXTURE_TIP_RATIO, 1);
-      const u3 = new THREE.Vector2((index + 1) * TEXTURE_TIP_RATIO, 1);
-      const u4 = new THREE.Vector2((index + 1) * TEXTURE_TIP_RATIO, 0.9);
+      const u1 = new THREE.Vector2(index * TEXTURE_TIP_RATIO, 1);
+      const u2 = new THREE.Vector2(index * TEXTURE_TIP_RATIO, 0.9);
+      const u3 = new THREE.Vector2((index + 1) * TEXTURE_TIP_RATIO, 0.9);
+      const u4 = new THREE.Vector2((index + 1) * TEXTURE_TIP_RATIO, 1);
 
       return [u1, u2, u3, u4];
     }
@@ -294,18 +294,14 @@ export class Chunk {
   refresh() {
     const result = this.getMeshResult();
 
-    const vertices: THREE.Vector3[] = [];
+    const positionArray: number[] = [];
     const faces: number[] = [];
     const uvArray: number[] = [];
 
     for (var i = 0; i < result.vertices.length; i++) {
-      vertices.push(
-        new THREE.Vector3(
-          this.pos.x * this.x_size + result.vertices[i][0],
-          result.vertices[i][1],
-          this.pos.z * this.z_size + result.vertices[i][2],
-        ),
-      );
+      positionArray.push(this.pos.x * this.x_size + result.vertices[i][0]);
+      positionArray.push(result.vertices[i][1]);
+      positionArray.push(this.pos.z * this.z_size + result.vertices[i][2]);
 
       uvArray.push(result.uvs[i].x);
       uvArray.push(result.uvs[i].y);
@@ -324,19 +320,20 @@ export class Chunk {
     }
 
     // Only update geometry if we have valid data
-    if (vertices.length > 0 && faces.length > 0 && uvArray.length > 0) {
+    if (positionArray.length > 0 && faces.length > 0 && uvArray.length > 0) {
       // Dispose old geometry to prevent memory issues
       this.geometry.dispose();
       this.geometry = new THREE.BufferGeometry();
 
-      this.geometry.setFromPoints(vertices);
+      this.geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(new Float32Array(positionArray), 3),
+      );
       this.geometry.setAttribute(
         "uv",
-        new THREE.BufferAttribute(new Float32Array(uvArray), 2, true),
+        new THREE.BufferAttribute(new Float32Array(uvArray), 2),
       );
       this.geometry.setIndex(faces);
-
-      this.geometry.attributes.position.needsUpdate = true;
 
       this.geometry.computeVertexNormals();
       this.geometry.computeBoundingBox();
