@@ -1,64 +1,76 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+    </head>
 
-<head>
-    <meta charset="UTF-8">
-</head>
+    <body>
+        <style>
+            body {
+                font-family: YuGothic;
+                font-size: 18px;
+                font-weight: 500;
+                color: #333;
+            }
 
-<body>
-    <style>
-        body {
-            font-family: YuGothic;
-            font-size: 18px;
-            font-weight: 500;
-            color: #333;
-        }
+            .info {
+                padding: 2px;
+                font-size: 18px;
+                position: absolute;
+                top: 100px;
+                right: 60px;
+                background-color: #f0f0f070;
+            }
+        </style>
+        <script
+            type="text/javascript"
+            src="https://code.jquery.com/jquery-1.9.1.min.js"
+        ></script>
+        <script type="module" src="src/index.ts"></script>
+        <script>
+            let pointerLockRequested = false;
 
-        .info {
-            padding: 2px;
-            font-size: 18px;
-            position: absolute;
-            top: 100px;
-            right: 60px;
-            background-color: #f0f0f070;
-        }
-    </style>
-    <script type="text/javascript" src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
-    <script type="module" src="src/index.ts"></script>
-    <script>
-        document.body.onclick = function () {
-            if (this.webkitRequestFullScreen) {
-                this.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
-            }
-            else if (this.mozRequestFullScreen) {
-                this.mozRequestFullScreen();
-            }
-            else if (this.msRequestFullscreen) {
-                this.msRequestFullscreen();
-            }
-            else {
-                alert("not found")
-            }
-            this.requestPointerLock = this.requestPointerLock || this.mozRequestPointerLock || this.webkitRequestPointerLock;
-            this.requestPointerLock();
-        }
-    </script>
-    <div class="info">
-        <div>
-            Control<br>
-            W,S: Move forward, Move backward<br>
-            A,D: Move left, Move right<br>
-            Space: Jump<br>
-            Mouse: Look control<br>
-            Click: Break a block
+            document.addEventListener("DOMContentLoaded", function () {
+                document.body.onclick = function () {
+                    if (!pointerLockRequested) {
+                        pointerLockRequested = true;
+
+                        if (this.webkitRequestFullScreen) {
+                            this.webkitRequestFullScreen(
+                                Element.ALLOW_KEYBOARD_INPUT,
+                            );
+                        } else if (this.mozRequestFullScreen) {
+                            this.mozRequestFullScreen();
+                        } else if (this.msRequestFullscreen) {
+                            this.msRequestFullscreen();
+                        }
+
+                        this.requestPointerLock =
+                            this.requestPointerLock ||
+                            this.mozRequestPointerLock ||
+                            this.webkitRequestPointerLock;
+                        if (this.requestPointerLock) {
+                            this.requestPointerLock();
+                        }
+                    }
+                };
+            });
+        </script>
+        <div class="info">
+            <div>
+                Control<br />
+                W,S: Move forward, Move backward<br />
+                A,D: Move left, Move right<br />
+                Space: Jump<br />
+                Mouse: Look control<br />
+                Click: Break a block
+            </div>
+            <div style="font-size: 10px">
+                <div id="2d"></div>
+                <div id="time"></div>
+                <div id="debug1"></div>
+                <div id="debug2"></div>
+            </div>
         </div>
-        <div style="font-size:10px;">
-            <div id="2d"></div>
-            <div id="time"></div>
-            <div id="debug1"></div>
-            <div id="debug2"></div>
-        </div>
-    </div>
-</body>
-
+    </body>
 </html>

@@ -323,19 +323,28 @@ export class Chunk {
       faces.push(q[3]);
     }
 
-    this.geometry.setFromPoints(vertices);
-    this.geometry.setAttribute(
-      "uv",
-      new THREE.BufferAttribute(new Float32Array(uvArray), 2, true),
-    );
-    this.geometry.setIndex(faces);
+    // Only update geometry if we have valid data
+    if (vertices.length > 0 && faces.length > 0 && uvArray.length > 0) {
+      // Dispose old geometry to prevent memory issues
+      this.geometry.dispose();
+      this.geometry = new THREE.BufferGeometry();
 
-    this.geometry.attributes.position.needsUpdate = true;
+      this.geometry.setFromPoints(vertices);
+      this.geometry.setAttribute(
+        "uv",
+        new THREE.BufferAttribute(new Float32Array(uvArray), 2, true),
+      );
+      this.geometry.setIndex(faces);
 
-    this.geometry.computeVertexNormals();
-    this.geometry.computeBoundingBox();
-    this.geometry.computeBoundingSphere();
-    this.geometry.computeTangents();
+      this.geometry.attributes.position.needsUpdate = true;
+
+      this.geometry.computeVertexNormals();
+      this.geometry.computeBoundingBox();
+      this.geometry.computeBoundingSphere();
+
+      // Update the mesh geometry
+      this.mesh.geometry = this.geometry;
+    }
   }
 
   getPos() {
