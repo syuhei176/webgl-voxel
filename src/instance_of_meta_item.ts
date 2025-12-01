@@ -1,24 +1,23 @@
-import { RenderManager } from "./RenderManager";
-import * as THREE from "three"
+import { RenderManager } from "./render_manager";
+import * as THREE from "three";
 
 export class InstanceOfMetaItem {
-  id: string
-  renderManager: RenderManager
-  mesh: THREE.Mesh
-
+  id: string;
+  renderManager: RenderManager;
+  mesh: THREE.Mesh;
 
   constructor(renderManager: RenderManager, geometry, material) {
-    this.renderManager = renderManager
+    this.renderManager = renderManager;
 
     // TODO: id generation
     this.id = "i" + new Date().getTime().toString(36);
 
     this.mesh = new THREE.Mesh(geometry, material);
-    this.mesh.rotateY(30 / 180 * Math.PI)
+    this.mesh.rotateY((30 / 180) * Math.PI);
   }
 
   getID() {
-    return this.id
+    return this.id;
   }
 
   getClass() {
@@ -30,9 +29,9 @@ export class InstanceOfMetaItem {
   }
 
   setPosition(x, y, z) {
-    this.mesh.translateX(x)
-    this.mesh.translateY(y)
-    this.mesh.translateZ(z)
+    this.mesh.translateX(x);
+    this.mesh.translateY(y);
+    this.mesh.translateZ(z);
   }
 
   destroy() {

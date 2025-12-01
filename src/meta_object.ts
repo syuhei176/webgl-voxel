@@ -1,23 +1,22 @@
-import { InstanceOfMetaObject } from "./InstanceOfMetaObject";
-import { RenderManager } from "./RenderManager";
-
+import { InstanceOfMetaObject } from "./instance_of_meta_object";
+import { RenderManager } from "./render_manager";
 
 interface MetaObjectOption {
-  is_light: boolean
-  brightness: number
+  is_light: boolean;
+  brightness: number;
 }
 
 export class MetaObject {
-  tip_no: number
-  is_light: boolean = false
-  brightness: number
+  tip_no: number;
+  is_light: boolean = false;
+  brightness: number;
 
   constructor(_tip_no: number, option?: MetaObjectOption) {
-    this.tip_no = _tip_no
+    this.tip_no = _tip_no;
 
     var brightness = 0;
     if (option && option.is_light) {
-      this.is_light = true
+      this.is_light = true;
       this.brightness = option.brightness;
     }
   }
@@ -33,5 +32,4 @@ export class MetaObject {
   isLight() {
     return this.is_light;
   }
-
 }

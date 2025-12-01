@@ -1,19 +1,19 @@
-import { Camera, Scene, WebGLRenderer } from "three"
-import * as THREE from "three"
-import { CHUNLK_LENGTH_X, Chunk } from "./Chunk"
+import { Camera, Scene, WebGLRenderer } from "three";
+import * as THREE from "three";
+import { CHUNLK_LENGTH_X, Chunk } from "./chunk";
 
 export class RenderManager {
-  width: number
-  height: number
-  camera: Camera
-  scene: Scene
-  renderer: WebGLRenderer
-  display_queue: Chunk[] = []
-  listeners: any[] = []
+  width: number;
+  height: number;
+  camera: Camera;
+  scene: Scene;
+  renderer: WebGLRenderer;
+  display_queue: Chunk[] = [];
+  listeners: any[] = [];
 
   constructor(width: number, height: number) {
-    this.width = width
-    this.height = height
+    this.width = width;
+    this.height = height;
 
     // Creates WebGL renderer
     this.renderer = new WebGLRenderer({ antialias: true });
@@ -29,17 +29,17 @@ export class RenderManager {
 
     // Created a camera
     this.camera = new THREE.PerspectiveCamera(90, width / height);
-    this.camera.translateX(0)
-    this.camera.translateY(0)
-    this.camera.translateZ(10)
+    this.camera.translateX(0);
+    this.camera.translateY(0);
+    this.camera.translateZ(10);
     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
     this.scene.add(this.camera);
 
     // Created a light
     var light = new THREE.DirectionalLight(0xcccccc, 1);
-    light.translateX(0.577)
-    light.translateY(0.577)
-    light.translateZ(0.577)
+    light.translateX(0.577);
+    light.translateY(0.577);
+    light.translateZ(0.577);
     this.scene.add(light);
     /*
     var light = new THREE.PointLight( 0xcccccc, 1, 200 );
@@ -68,16 +68,15 @@ export class RenderManager {
   }
 
   play() {
-
     const render = () => {
       var c = this.display_queue.shift();
       if (c) {
         c.refresh();
       }
 
-      this.listeners.forEach(listener => {
-        listener()
-      })
+      this.listeners.forEach((listener) => {
+        listener();
+      });
 
       //display_queue.length = 0;
       requestAnimationFrame(render);

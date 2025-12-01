@@ -3,16 +3,13 @@
   "version": "0.0.1",
   "description": "",
   "scripts": {
-    "start": "parcel serve ./index.html",
-    "build": "parcel build ./index.html --dist-dir ./dist --public-url ./ && cp texture.png ./dist"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "devDependencies": {
     "@types/three": "^0.155.0",
-    "gulp": "~3.8.7",
-    "gulp-connect": "~2.0.6",
-    "gulp-install": "^0.2.0",
-    "gulp-webserver": "*",
-    "parcel": "^2.9.3"
+    "vite": "^7.2.6"
   },
   "author": "",
   "license": "MIT",

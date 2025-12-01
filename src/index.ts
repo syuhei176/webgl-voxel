@@ -1,4 +1,4 @@
-import { WorldManager } from './WorldManager'
+import { WorldManager } from "./world_manager";
 
 var worldManager = new WorldManager();
 // g_time = 0;

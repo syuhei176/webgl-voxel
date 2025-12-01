@@ -1,10 +1,10 @@
-import { InstanceOfMetaItem } from "./InstanceOfMetaItem";
-import { RenderManager } from "./RenderManager";
-import * as THREE from "three"
+import { InstanceOfMetaItem } from "./instance_of_meta_item";
+import { RenderManager } from "./render_manager";
+import * as THREE from "three";
 
 export class MetaItem {
-  geometry: THREE.BoxGeometry
-  material: THREE.MeshBasicMaterial
+  geometry: THREE.BoxGeometry;
+  material: THREE.MeshBasicMaterial;
 
   constructor() {
     this.geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
@@ -16,9 +16,8 @@ export class MetaItem {
       shininess: 50,
       metal: true,
       */
-      map: new THREE.TextureLoader().load('texture.png')
+      map: new THREE.TextureLoader().load("texture.png"),
     });
-
   }
   /*
   var vertices = [];
