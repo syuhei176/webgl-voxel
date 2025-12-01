@@ -19,13 +19,13 @@ export class RenderManager {
     this.renderer = new WebGLRenderer({ antialias: true });
     // this.renderer.setDepthTest(true);
     this.renderer.setSize(width, height);
-    // this.renderer.setClearColorHex(0xffffff, 1);
+    this.renderer.setClearColor(0x87ceeb, 1);
     this.renderer.clear();
     document.body.appendChild(this.renderer.domElement);
 
     // Creates a scene
     this.scene = new Scene();
-    this.scene.fog = new THREE.Fog(0xffffff, 1, CHUNLK_LENGTH_X * 1.2);
+    this.scene.fog = new THREE.Fog(0x87ceeb, 1, CHUNLK_LENGTH_X * 1.2);
 
     // Created a camera
     this.camera = new THREE.PerspectiveCamera(90, width / height);
